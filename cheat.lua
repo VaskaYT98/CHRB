@@ -597,16 +597,16 @@ NightScriptButton = createCheatButton(ExtrasPage, "NightScriptButton", "🌙 99 
 NightScriptButton.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
 extrasY = extrasY + 50
 
-BloxFruitScriptButton = createCheatButton(ExtrasPage, "BloxFruitScriptButton", "🍎 Blox Fruit Script", extrasY)
-BloxFruitScriptButton.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
+ForsakenScriptButton = createCheatButton(ExtrasPage, "ForsakenScriptButton", "💀 Forsaken Script", extrasY)
+ForsakenScriptButton.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
 extrasY = extrasY + 50
 
-PetSimScriptButton = createCheatButton(ExtrasPage, "PetSimScriptButton", "🐕 Pet Sim Script", extrasY)
-PetSimScriptButton.BackgroundColor3 = Color3.fromRGB(100, 200, 50)
+InkGameScriptButton = createCheatButton(ExtrasPage, "InkGameScriptButton", "🎨 Ink Game Script", extrasY)
+InkGameScriptButton.BackgroundColor3 = Color3.fromRGB(100, 200, 50)
 extrasY = extrasY + 50
 
-BrainrotScriptButton = createCheatButton(ExtrasPage, "BrainrotScriptButton", "🧠 Brainrot Script", extrasY)
-BrainrotScriptButton.BackgroundColor3 = Color3.fromRGB(150, 100, 200)
+rainbowfriends2ScriptButton = createCheatButton(ExtrasPage, "rainbowfriends2ScriptButton", "🌈 rainbow friends chapter 2 Script", extrasY)
+rainbowfriends2ScriptButton.BackgroundColor3 = Color3.fromRGB(150, 100, 200)
 extrasY = extrasY + 50
 
 DeadrelScriptButton = createCheatButton(ExtrasPage, "DeadrelScriptButton", "💀 Deadrels Script", extrasY)
@@ -913,11 +913,11 @@ end
 -- Brainrot Script Handler
 local function loadBrainrotScript()
     pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/BrainrotGaming/BrainrotUI/main/loader.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Nivex123456/rainbow/main/script"))()
     end)
-    BrainrotScriptButton.Text = "✅ Brainrot загружен!"
+    rainbowfriends2ScriptButton.Text = "✅ rainbow friends chapter 2 загружен!"
     wait(2)
-    BrainrotScriptButton.Text = "🧠 Brainrot Script"
+    rainbowfriends2ScriptButton.Text = "🧠 rainbow friends chapter 2 Script"
 end
 
 -- Deadrels Script Handler
@@ -1616,22 +1616,22 @@ NightScriptButton.MouseButton1Click:Connect(function()
     NightScriptButton.Text = "🌙 99 Nights in the Forest"
 end)
 
-BloxFruitScriptButton.MouseButton1Click:Connect(function()
+ForsakenScriptButton.MouseButton1Click:Connect(function()
     pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/BloxFruits/main/Main.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/forsaken.lua", true))()
     end)
-    BloxFruitScriptButton.Text = "✅ Blox Fruit загружен!"
+    BloxFruitScriptButton.Text = "✅ Forsaken загружен!"
     wait(2)
-    BloxFruitScriptButton.Text = "🍎 Blox Fruit Script"
+    BloxFruitScriptButton.Text = "💀 Forsaken Script"
 end)
 
-PetSimScriptButton.MouseButton1Click:Connect(function()
+InkGameScriptButton.MouseButton1Click:Connect(function()
     pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/PetSimulator/main/Main.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/inkgame.lua", true))()
     end)
     PetSimScriptButton.Text = "✅ Pet Sim загружен!"
     wait(2)
-    PetSimScriptButton.Text = "🐕 Pet Sim Script"
+    PetSimScriptButton.Text = "🎨 Ink Game Script"
 end)
 
 BrainrotScriptButton.MouseButton1Click:Connect(loadBrainrotScript)
@@ -1780,5 +1780,6 @@ pcall(function()
     
     setreadonly(mt, true)
 end)
+
 
 print("✅ Cheat by V98 v8.0 ULTIMATE загружено!")
