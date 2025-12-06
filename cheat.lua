@@ -49,6 +49,18 @@ local fakeLagEnabled = false
 local autoClickerEnabled = false
 local autoClickerSpeed = 10
 local selectedPlayerForTP = nil
+local invisibilityEnabled = false
+local itemESPEnabled = false
+local fpsBoostEnabled = false
+local serverPrivateEnabled = false
+local antiAFKEnabled = false
+local tracerLinesEnabled = false
+local healthBarsEnabled = false
+local outfitCopierEnabled = false
+local trollToolsEnabled = false
+local musicID = ""
+local currentTheme = "dark"
+local scriptEditorCode = ""
 
 -- Биндинги
 local flyBind = Enum.KeyCode.F
@@ -98,7 +110,7 @@ MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(menuColorR, menuColorG, menuColorB)
 MainFrame.BorderSizePixel = 0
 MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
-MainFrame.Size = UDim2.new(0, 450, 0, 500)
+MainFrame.Size = UDim2.new(0, 450, 0, 550)
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.ClipsDescendants = false
@@ -239,7 +251,49 @@ ContentFrame.Name = "ContentFrame"
 ContentFrame.Parent = MainFrame
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Position = UDim2.new(0, 0, 0, 120)
-ContentFrame.Size = UDim2.new(1, 0, 1, -120)
+ContentFrame.Size = UDim2.new(1, 0, 1, -160)
+
+-- Панель информации об игроке
+local PlayerInfoFrame = Instance.new("Frame")
+PlayerInfoFrame.Name = "PlayerInfoFrame"
+PlayerInfoFrame.Parent = MainFrame
+PlayerInfoFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+PlayerInfoFrame.BorderSizePixel = 0
+PlayerInfoFrame.Position = UDim2.new(0, 0, 1, -40)
+PlayerInfoFrame.Size = UDim2.new(1, 0, 0, 40)
+
+local PlayerAvatar = Instance.new("ImageLabel")
+PlayerAvatar.Name = "PlayerAvatar"
+PlayerAvatar.Parent = PlayerInfoFrame
+PlayerAvatar.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+PlayerAvatar.BorderSizePixel = 0
+PlayerAvatar.Position = UDim2.new(0, 5, 0, 3)
+PlayerAvatar.Size = UDim2.new(0, 34, 0, 34)
+PlayerAvatar.Image = game:GetService("Players"):GetUserThumbnailAsync(game.Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+
+local PlayerLabel = Instance.new("TextLabel")
+PlayerLabel.Name = "PlayerLabel"
+PlayerLabel.Parent = PlayerInfoFrame
+PlayerLabel.BackgroundTransparency = 1
+PlayerLabel.Position = UDim2.new(0, 45, 0, 2)
+PlayerLabel.Size = UDim2.new(1, -50, 0, 18)
+PlayerLabel.Font = Enum.Font.GothamBold
+PlayerLabel.Text = game.Players.LocalPlayer.Name .. " [" .. game.Players.LocalPlayer.UserId .. "]"
+PlayerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+PlayerLabel.TextSize = 11
+PlayerLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local PlayerStatsLabel = Instance.new("TextLabel")
+PlayerStatsLabel.Name = "PlayerStatsLabel"
+PlayerStatsLabel.Parent = PlayerInfoFrame
+PlayerStatsLabel.BackgroundTransparency = 1
+PlayerStatsLabel.Position = UDim2.new(0, 45, 0, 20)
+PlayerStatsLabel.Size = UDim2.new(1, -50, 0, 16)
+PlayerStatsLabel.Font = Enum.Font.Gotham
+PlayerStatsLabel.Text = "Версия 9.0 ULTIMATE | Авто"
+PlayerStatsLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+PlayerStatsLabel.TextSize = 10
+PlayerStatsLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Функция создания страницы
 local function createPage(name)
@@ -552,16 +606,28 @@ local SelectedPlayerLabel
 local TPSelectedButton
 local NightScriptButton
 local BloxFruitScriptButton
-local PetSimScriptButton
-local BrainrotScriptButton
-local DeadrelScriptButton
 local FlyNormalButton
 local FlyBhopButton
 local FlyBounceButton
 local FlyGlideButton
-local WalljumpButton
-local FakeLagButton
-local AutoClickerButton
+local InvisibilityButton
+local ItemESPButton
+local FPSBoostButton
+local ServerPrivateButton
+local AntiAFKButton
+local TracerLinesButton
+local HealthBarsButton
+local OutfitCopierButton
+local TrollToolsButton
+local MusicIDTextBox
+local PlayMusicButton
+local StopMusicButton
+local ServerInfoButton
+local PlayerAnalyticsButton
+local ScriptEditorButton
+local ThemeDarkButton
+local ThemeLightButton
+local ThemeCyberpunkButton
 local SaveConfigButton
 local LoadConfigButton
 local DupeItemsButton
@@ -597,20 +663,8 @@ NightScriptButton = createCheatButton(ExtrasPage, "NightScriptButton", "🌙 99 
 NightScriptButton.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
 extrasY = extrasY + 50
 
-BloxFruitScriptButton = createCheatButton(ExtrasPage, "BloxFruitScriptButton", "🍎 Blox Fruit Script", extrasY)
+BloxFruitScriptButton = createCheatButton(ExtrasPage, "BloxFruitScriptButton", "👹 Forsaken Script", extrasY)
 BloxFruitScriptButton.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
-extrasY = extrasY + 50
-
-PetSimScriptButton = createCheatButton(ExtrasPage, "PetSimScriptButton", "🐕 Pet Sim Script", extrasY)
-PetSimScriptButton.BackgroundColor3 = Color3.fromRGB(100, 200, 50)
-extrasY = extrasY + 50
-
-BrainrotScriptButton = createCheatButton(ExtrasPage, "BrainrotScriptButton", "🧠 Brainrot Script", extrasY)
-BrainrotScriptButton.BackgroundColor3 = Color3.fromRGB(150, 100, 200)
-extrasY = extrasY + 50
-
-DeadrelScriptButton = createCheatButton(ExtrasPage, "DeadrelScriptButton", "💀 Deadrels Script", extrasY)
-DeadrelScriptButton.BackgroundColor3 = Color3.fromRGB(200, 50, 100)
 extrasY = extrasY + 55
 
 createLabel(ExtrasPage, "✈️ ТИПЫ ПОЛЕТА", extrasY)
@@ -628,19 +682,32 @@ extrasY = extrasY + 55
 createLabel(ExtrasPage, "⚡ ПРОДВИНУТЫЕ ЧИТЫ", extrasY)
 extrasY = extrasY + 35
 
-WalljumpButton = createCheatButton(ExtrasPage, "WalljumpButton", "🧗 Walljump: OFF", extrasY)
+local InvisibilityButton = createCheatButton(ExtrasPage, "InvisibilityButton", "👻 Невидимость: OFF", extrasY)
 extrasY = extrasY + 50
 
-FakeLagButton = createCheatButton(ExtrasPage, "FakeLagButton", "🌊 Fake Lag: OFF", extrasY)
+local ItemESPButton = createCheatButton(ExtrasPage, "ItemESPButton", "📦 Item ESP: OFF", extrasY)
 extrasY = extrasY + 50
 
-AutoClickerButton = createCheatButton(ExtrasPage, "AutoClickerButton", "🖱️ Auto Clicker: OFF", extrasY)
+local FPSBoostButton = createCheatButton(ExtrasPage, "FPSBoostButton", "⚡ FPS Boost: OFF", extrasY)
 extrasY = extrasY + 50
 
-createSlider(ExtrasPage, "AutoClickerSpeedSlider", "Скорость автоклика (CPS)", 1, 100, 10, extrasY, function(value)
-    autoClickerSpeed = value
-end)
-extrasY = extrasY + 65
+local ServerPrivateButton = createCheatButton(ExtrasPage, "ServerPrivateButton", "🔒 Server Private: OFF", extrasY)
+extrasY = extrasY + 50
+
+local AntiAFKButton = createCheatButton(ExtrasPage, "AntiAFKButton", "🔄 Anti-AFK: OFF", extrasY)
+extrasY = extrasY + 50
+
+local TracerLinesButton = createCheatButton(ExtrasPage, "TracerLinesButton", "📍 Tracer Lines: OFF", extrasY)
+extrasY = extrasY + 50
+
+local HealthBarsButton = createCheatButton(ExtrasPage, "HealthBarsButton", "❤️ Health Bars: OFF", extrasY)
+extrasY = extrasY + 50
+
+local OutfitCopierButton = createCheatButton(ExtrasPage, "OutfitCopierButton", "👕 Outfit Copier: OFF", extrasY)
+extrasY = extrasY + 50
+
+local TrollToolsButton = createCheatButton(ExtrasPage, "TrollToolsButton", "😈 Troll Tools: OFF", extrasY)
+extrasY = extrasY + 55
 
 createLabel(ExtrasPage, "💾 СОХРАНЕНИЕ КОНФИГОВ", extrasY)
 extrasY = extrasY + 35
@@ -653,10 +720,57 @@ LoadConfigButton = createCheatButton(ExtrasPage, "LoadConfigButton", "📂 За�
 LoadConfigButton.BackgroundColor3 = Color3.fromRGB(100, 150, 50)
 extrasY = extrasY + 55
 
+createLabel(ExtrasPage, "🎵 МУЗЫКА", extrasY)
+extrasY = extrasY + 35
+
+local MusicIDTextBox = createTextBox(ExtrasPage, "MusicIDTextBox", "Введите ID музыки...", extrasY)
+extrasY = extrasY + 40
+
+local PlayMusicButton = createCheatButton(ExtrasPage, "PlayMusicButton", "▶️ Проиграть музыку", extrasY)
+PlayMusicButton.BackgroundColor3 = Color3.fromRGB(50, 100, 150)
+extrasY = extrasY + 50
+
+local StopMusicButton = createCheatButton(ExtrasPage, "StopMusicButton", "⏹️ Остановить музыку", extrasY)
+StopMusicButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+extrasY = extrasY + 55
+
+createLabel(ExtrasPage, "📊 ИНФОРМАЦИЯ О СЕРВЕРЕ", extrasY)
+extrasY = extrasY + 35
+
+local ServerInfoButton = createCheatButton(ExtrasPage, "ServerInfoButton", "ℹ️ Информация сервера", extrasY)
+ServerInfoButton.BackgroundColor3 = Color3.fromRGB(50, 150, 100)
+extrasY = extrasY + 50
+
+local PlayerAnalyticsButton = createCheatButton(ExtrasPage, "PlayerAnalyticsButton", "📈 Аналитика игроков", extrasY)
+PlayerAnalyticsButton.BackgroundColor3 = Color3.fromRGB(100, 150, 50)
+extrasY = extrasY + 55
+
+createLabel(ExtrasPage, "🎨 РЕДАКТОР СКРИПТОВ", extrasY)
+extrasY = extrasY + 35
+
+local ScriptEditorButton = createCheatButton(ExtrasPage, "ScriptEditorButton", "✍️ Редактор скриптов", extrasY)
+ScriptEditorButton.BackgroundColor3 = Color3.fromRGB(150, 100, 200)
+extrasY = extrasY + 50
+
+createLabel(ExtrasPage, "🎨 СИСТЕМА ТЕМ", extrasY)
+extrasY = extrasY + 35
+
+local ThemeDarkButton = createCheatButton(ExtrasPage, "ThemeDarkButton", "🌙 Тёмная тема", extrasY)
+ThemeDarkButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+extrasY = extrasY + 50
+
+local ThemeLightButton = createCheatButton(ExtrasPage, "ThemeLightButton", "☀️ Светлая тема", extrasY)
+ThemeLightButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+extrasY = extrasY + 50
+
+local ThemeCyberpunkButton = createCheatButton(ExtrasPage, "ThemeCyberpunkButton", "⚡ Киберпанк тема", extrasY)
+ThemeCyberpunkButton.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
+extrasY = extrasY + 55
+
 createLabel(ExtrasPage, "🎁 ДОПОЛНИТЕЛЬНО", extrasY)
 extrasY = extrasY + 35
 
-DupeItemsButton = createCheatButton(ExtrasPage, "DupeItemsButton", "📦 Дюп предметов", extrasY)
+DupeItemsButton = createCheatButton(ExtrasPage, "DupeItemsButton", "📦 Дюп предметов (v2)", extrasY)
 DupeItemsButton.BackgroundColor3 = Color3.fromRGB(200, 100, 50)
 extrasY = extrasY + 50
 
@@ -764,73 +878,469 @@ local function setFlyType(flyType)
     end
 end
 
--- Walljump
-local walljumpConnection
-local lastWalljumpTime = 0
-local function toggleWalljump()
-    walljumpEnabled = not walljumpEnabled
-    updateButton(WalljumpButton, walljumpEnabled)
+-- Invisibility (Невидимость)
+local function toggleInvisibility()
+    invisibilityEnabled = not invisibilityEnabled
+    updateButton(InvisibilityButton, invisibilityEnabled)
     
-    if walljumpEnabled then
-        walljumpConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            if not walljumpEnabled or not char or not rootPart then return end
-            
-            local humanoidState = hum:GetState()
-            if humanoidState == Enum.HumanoidStateType.Landed then
-                if tick() - lastWalljumpTime > 0.1 then
-                    local rayCast = workspace:FindPartOnRay(Ray.new(rootPart.Position, rootPart.CFrame.LookVector * 5))
-                    if rayCast then
-                        hum:ChangeState(Enum.HumanoidStateType.Jumping)
-                        rootPart.Velocity = rootPart.Velocity + (rootPart.CFrame.LookVector * 50)
-                        lastWalljumpTime = tick()
+    if invisibilityEnabled then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 1
+            end
+        end
+    else
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+            end
+        end
+    end
+end
+
+-- Item ESP
+local itemESPObjects = {}
+local function toggleItemESP()
+    itemESPEnabled = not itemESPEnabled
+    updateButton(ItemESPButton, itemESPEnabled)
+    
+    if itemESPEnabled then
+        spawn(function()
+            while itemESPEnabled do
+                for _, item in pairs(workspace:FindPartBySelectorAll("[class=Model]")) do
+                    if not itemESPObjects[item] and item:FindFirstChild("Handle") then
+                        local highlight = Instance.new("Highlight")
+                        highlight.Adornee = item
+                        highlight.FillColor = Color3.fromRGB(100, 200, 100)
+                        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                        highlight.FillTransparency = 0.3
+                        highlight.OutlineTransparency = 0
+                        highlight.Parent = item
+                        itemESPObjects[item] = highlight
+                    end
+                end
+                wait(0.5)
+            end
+        end)
+    else
+        for _, highlight in pairs(itemESPObjects) do
+            if highlight then highlight:Destroy() end
+        end
+        itemESPObjects = {}
+    end
+end
+
+-- FPS Boost
+local fpsBoostConnection
+local function toggleFPSBoost()
+    fpsBoostEnabled = not fpsBoostEnabled
+    updateButton(FPSBoostButton, fpsBoostEnabled)
+    
+    if fpsBoostEnabled then
+        game:GetService("Lighting").GlobalShadows = false
+        game:GetService("Lighting").FogEnd = 9e9
+        
+        for _, obj in pairs(workspace:FindPartBySelectorAll("[class=BasePart]")) do
+            if obj and obj:IsA("BasePart") then
+                obj.CanCollide = obj:IsDescendantOf(char) or obj:IsDescendantOf(game.Players)
+            end
+        end
+        
+        fpsBoostConnection = game:GetService("RunService").RenderStepped:Connect(function()
+            if not fpsBoostEnabled then return end
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character then
+                    for _, part in pairs(player.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
                     end
                 end
             end
         end)
     else
-        if walljumpConnection then walljumpConnection:Disconnect() end
+        if fpsBoostConnection then fpsBoostConnection:Disconnect() end
+        game:GetService("Lighting").GlobalShadows = true
+        game:GetService("Lighting").FogEnd = 500
     end
 end
 
--- Fake Lag
-local fakeLagConnection
-local lagAmount = 0.5
-local function toggleFakeLag()
-    fakeLagEnabled = not fakeLagEnabled
-    updateButton(FakeLagButton, fakeLagEnabled)
+-- Server Private (приватный сервер)
+local function joinPrivateServer()
+    serverPrivateEnabled = not serverPrivateEnabled
+    updateButton(ServerPrivateButton, serverPrivateEnabled)
     
-    if fakeLagEnabled then
-        fakeLagConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            if not fakeLagEnabled or not rootPart then return end
-            
-            local oldCFrame = rootPart.CFrame
-            wait(lagAmount)
-            rootPart.CFrame = oldCFrame
-        end)
-    else
-        if fakeLagConnection then fakeLagConnection:Disconnect() end
-    end
-end
-
--- Auto Clicker
-local autoClickerConnection
-local function toggleAutoClicker()
-    autoClickerEnabled = not autoClickerEnabled
-    updateButton(AutoClickerButton, autoClickerEnabled)
-    
-    if autoClickerEnabled then
-        autoClickerConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            if not autoClickerEnabled then return end
-            
-            local tool = char:FindFirstChildOfClass("Tool")
-            if tool and tool:FindFirstChild("Handle") then
-                pcall(function() tool:Activate() end)
+    if serverPrivateEnabled then
+        pcall(function()
+            local players = game:GetService("Players"):GetPlayers()
+            if #players > 1 then
+                local targetPlayer = nil
+                for _, p in pairs(players) do
+                    if p ~= game.Players.LocalPlayer then
+                        targetPlayer = p
+                        break
+                    end
+                end
+                
+                if targetPlayer and targetPlayer.Character then
+                    local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if targetRoot then
+                        rootPart.CFrame = CFrame.new(targetRoot.Position + Vector3.new(100, 100, 100))
+                    end
+                end
             end
-            wait(1 / autoClickerSpeed)
+        end)
+        ServerPrivateButton.Text = "✅ Перемещение..."
+        wait(1)
+        ServerPrivateButton.Text = "🔒 Server Private: ON"
+    end
+end
+
+-- Anti-AFK
+local antiAFKConnection
+local function toggleAntiAFK()
+    antiAFKEnabled = not antiAFKEnabled
+    updateButton(AntiAFKButton, antiAFKEnabled)
+    
+    if antiAFKEnabled then
+        antiAFKConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            if not antiAFKEnabled then return end
+            game:GetService("Players").LocalPlayer.Idled:Connect(function()
+                game:GetService("VirtualUser"):Button2Down(Vector2.new(0, 0))
+                wait(1)
+                game:GetService("VirtualUser"):Button2Up(Vector2.new(0, 0))
+            end)
         end)
     else
-        if autoClickerConnection then autoClickerConnection:Disconnect() end
+        if antiAFKConnection then antiAFKConnection:Disconnect() end
     end
+end
+
+-- Tracer Lines
+local tracerObjects = {}
+local function toggleTracerLines()
+    tracerLinesEnabled = not tracerLinesEnabled
+    updateButton(TracerLinesButton, tracerLinesEnabled)
+    
+    if tracerLinesEnabled then
+        spawn(function()
+            while tracerLinesEnabled do
+                for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                    if otherPlayer ~= game.Players.LocalPlayer and otherPlayer.Character then
+                        local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+                        if otherRoot and rootPart then
+                            if not tracerObjects[otherPlayer] then
+                                local line = Drawing.new("Line")
+                                line.Color = Color3.fromRGB(255, 0, 0)
+                                line.Thickness = 2
+                                tracerObjects[otherPlayer] = line
+                            end
+                            
+                            local screenPos1, onScreen1 = workspace.CurrentCamera:WorldToScreenPoint(rootPart.Position)
+                            local screenPos2, onScreen2 = workspace.CurrentCamera:WorldToScreenPoint(otherRoot.Position)
+                            
+                            if onScreen1 and onScreen2 then
+                                tracerObjects[otherPlayer].From = Vector2.new(screenPos1.X, screenPos1.Y)
+                                tracerObjects[otherPlayer].To = Vector2.new(screenPos2.X, screenPos2.Y)
+                                tracerObjects[otherPlayer].Visible = true
+                            else
+                                tracerObjects[otherPlayer].Visible = false
+                            end
+                        end
+                    end
+                end
+                wait(0.016)
+            end
+        end)
+    else
+        for _, line in pairs(tracerObjects) do
+            if line then line:Remove() end
+        end
+        tracerObjects = {}
+    end
+end
+
+-- Health Bars
+local healthBarObjects = {}
+local function toggleHealthBars()
+    healthBarsEnabled = not healthBarsEnabled
+    updateButton(HealthBarsButton, healthBarsEnabled)
+    
+    if healthBarsEnabled then
+        spawn(function()
+            while healthBarsEnabled do
+                for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                    if otherPlayer ~= game.Players.LocalPlayer and otherPlayer.Character then
+                        local head = otherPlayer.Character:FindFirstChild("Head")
+                        local humanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+                        
+                        if head and humanoid then
+                            if not healthBarObjects[otherPlayer] then
+                                local billboard = Instance.new("BillboardGui")
+                                billboard.Parent = head
+                                billboard.Size = UDim2.new(3, 0, 0.5, 0)
+                                billboard.StudsOffset = Vector3.new(0, 2, 0)
+                                billboard.AlwaysOnTop = true
+                                
+                                local healthBar = Instance.new("Frame")
+                                healthBar.Parent = billboard
+                                healthBar.Size = UDim2.new(1, 0, 1, 0)
+                                healthBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+                                healthBar.BorderSizePixel = 0
+                                
+                                healthBarObjects[otherPlayer] = {billboard = billboard, bar = healthBar}
+                            end
+                            
+                            local healthPercent = humanoid.Health / humanoid.MaxHealth
+                            healthBarObjects[otherPlayer].bar.Size = UDim2.new(healthPercent, 0, 1, 0)
+                            healthBarObjects[otherPlayer].bar.BackgroundColor3 = Color3.fromRGB(
+                                255 * (1 - healthPercent),
+                                255 * healthPercent,
+                                0
+                            )
+                        end
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    else
+        for _, obj in pairs(healthBarObjects) do
+            if obj.billboard then obj.billboard:Destroy() end
+        end
+        healthBarObjects = {}
+    end
+end
+
+-- Outfit Copier
+local function copyOutfit()
+    local mouse = game:GetService("UserInputService"):GetMouseLocation()
+    local camera = workspace.CurrentCamera
+    local rayOrigin = camera.CFrame.Position
+    local rayDirection = (camera.CFrame * CFrame.new(0, 0, -1)).Position - rayOrigin
+    
+    local raycastResult = workspace:FindPartOnRay(Ray.new(rayOrigin, rayDirection.Unit * 1000))
+    
+    if raycastResult then
+        local targetPlayer = game.Players:FindFirstChild(raycastResult.Parent.Name)
+        if targetPlayer and targetPlayer.Character then
+            for _, clothing in pairs(targetPlayer.Character:GetChildren()) do
+                if clothing:IsA("Accessory") or clothing:IsA("Clothing") or clothing:IsA("BodyColors") then
+                    local clone = clothing:Clone()
+                    clone.Parent = char
+                end
+            end
+            OutfitCopierButton.Text = "✅ Внешность скопирована!"
+            wait(1)
+            OutfitCopierButton.Text = "👕 Outfit Copier: OFF"
+        end
+    end
+end
+
+-- Troll Tools
+local function showTrollTools()
+    trollToolsEnabled = not trollToolsEnabled
+    updateButton(TrollToolsButton, trollToolsEnabled)
+    
+    if trollToolsEnabled then
+        TrollToolsButton.Text = "✅ Инструменты активированы!"
+        wait(1)
+        TrollToolsButton.Text = "😈 Troll Tools: ON"
+    end
+end
+
+-- Music Player
+local currentMusic = nil
+local function playMusic()
+    if musicID == "" then
+        musicID = MusicIDTextBox.Text
+    end
+    
+    if musicID ~= "" then
+        if currentMusic then
+            currentMusic:Destroy()
+        end
+        
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://" .. musicID
+        sound.Volume = 0.5
+        sound.Parent = workspace
+        sound:Play()
+        
+        currentMusic = sound
+        PlayMusicButton.Text = "▶️ Проигрывается..."
+        wait(1)
+        PlayMusicButton.Text = "▶️ Проиграть музыку"
+    end
+end
+
+local function stopMusic()
+    if currentMusic then
+        currentMusic:Stop()
+        currentMusic:Destroy()
+        currentMusic = nil
+        StopMusicButton.Text = "⏹️ Остановлено"
+        wait(1)
+        StopMusicButton.Text = "⏹️ Остановить музыку"
+    end
+end
+
+-- Server Info
+local function showServerInfo()
+    local players = game.Players:GetPlayers()
+    local info = {
+        "═══ ИНФОРМАЦИЯ СЕРВЕРА ═══",
+        "🎮 Игроков: " .. #players,
+        "⏱️ Время игры: " .. math.floor(game.Workspace.DistributedGameTime) .. "с",
+        "📍 Место: " .. game.PlaceId,
+        "👤 Вы: " .. game.Players.LocalPlayer.Name,
+        "═════════════════════════"
+    }
+    
+    for _, msg in pairs(info) do
+        print(msg)
+    end
+    
+    ServerInfoButton.Text = "ℹ️ Информация загружена"
+    wait(2)
+    ServerInfoButton.Text = "ℹ️ Информация сервера"
+end
+
+-- Player Analytics
+local function showPlayerAnalytics()
+    local players = game.Players:GetPlayers()
+    print("═══ АНАЛИТИКА ИГРОКОВ ═══")
+    
+    for _, p in pairs(players) do
+        local char = p.Character
+        if char then
+            local hum = char:FindFirstChild("Humanoid")
+            print("👤 " .. p.Name .. " | ❤️ " .. (hum and hum.Health or 0) .. "/" .. (hum and hum.MaxHealth or 0))
+        end
+    end
+    
+    print("═════════════════════════")
+    PlayerAnalyticsButton.Text = "✅ Аналитика загружена"
+    wait(2)
+    PlayerAnalyticsButton.Text = "📈 Аналитика игроков"
+end
+
+-- Script Editor
+local function showScriptEditor()
+    local editorFrame = Instance.new("Frame")
+    editorFrame.Name = "ScriptEditor"
+    editorFrame.Parent = ScreenGui
+    editorFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    editorFrame.BorderSizePixel = 1
+    editorFrame.BorderColor3 = Color3.fromRGB(100, 100, 150)
+    editorFrame.Position = UDim2.new(0.5, -300, 0.5, -250)
+    editorFrame.Size = UDim2.new(0, 600, 0, 500)
+    editorFrame.ZIndex = 100
+    
+    local title = Instance.new("TextLabel")
+    title.Parent = editorFrame
+    title.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+    title.BorderSizePixel = 0
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Font = Enum.Font.GothamBold
+    title.Text = "✍️ Script Editor"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 14
+    
+    local textBox = Instance.new("TextBox")
+    textBox.Parent = editorFrame
+    textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    textBox.BorderSizePixel = 0
+    textBox.Position = UDim2.new(0, 5, 0, 35)
+    textBox.Size = UDim2.new(1, -10, 1, -80)
+    textBox.Font = Enum.Font.Code
+    textBox.Text = scriptEditorCode
+    textBox.TextColor3 = Color3.fromRGB(200, 255, 200)
+    textBox.TextSize = 11
+    textBox.TextXAlignment = Enum.TextXAlignment.Left
+    textBox.TextYAlignment = Enum.TextYAlignment.Top
+    textBox.ClipsDescendants = true
+    textBox.MultiLine = true
+    
+    local executeButton = Instance.new("TextButton")
+    executeButton.Parent = editorFrame
+    executeButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+    executeButton.BorderSizePixel = 0
+    executeButton.Position = UDim2.new(0, 5, 1, -40)
+    executeButton.Size = UDim2.new(0.45, -5, 0, 35)
+    executeButton.Font = Enum.Font.GothamBold
+    executeButton.Text = "▶️ Выполнить"
+    executeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    executeButton.TextSize = 12
+    
+    executeButton.MouseButton1Click:Connect(function()
+        scriptEditorCode = textBox.Text
+        pcall(function() loadstring(scriptEditorCode)() end)
+    end)
+    
+    local closeButton = Instance.new("TextButton")
+    closeButton.Parent = editorFrame
+    closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    closeButton.BorderSizePixel = 0
+    closeButton.Position = UDim2.new(0.5, 5, 1, -40)
+    closeButton.Size = UDim2.new(0.45, -5, 0, 35)
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Text = "❌ Закрыть"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 12
+    
+    closeButton.MouseButton1Click:Connect(function()
+        editorFrame:Destroy()
+    end)
+end
+
+-- Theme System
+local function applyTheme(theme)
+    currentTheme = theme
+    
+    if theme == "dark" then
+        MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        ThemeDarkButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        ThemeLightButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        ThemeCyberpunkButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    elseif theme == "light" then
+        MainFrame.BackgroundColor3 = Color3.fromRGB(220, 220, 230)
+        ThemeLightButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        ThemeDarkButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        ThemeCyberpunkButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    elseif theme == "cyberpunk" then
+        MainFrame.BackgroundColor3 = Color3.fromRGB(20, 0, 30)
+        ThemeCyberpunkButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        ThemeDarkButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        ThemeLightButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    end
+end
+
+-- Improved Dupe Items
+local function dupeItemsV2()
+    if not char then return end
+    
+    local backpack = game.Players.LocalPlayer:FindFirstChild("Backpack")
+    if not backpack then return end
+    
+    local allTools = {}
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") then
+            table.insert(allTools, item)
+        end
+    end
+    
+    for _, item in pairs(allTools) do
+        for i = 1, 5 do
+            local cloned = item:Clone()
+            cloned.Parent = backpack
+            wait(0.1)
+        end
+    end
+    
+    DupeItemsButton.Text = "✅ Дюплицировано (5x каждый)"
+    wait(2)
+    DupeItemsButton.Text = "📦 Дюп предметов (v2)"
 end
 
 -- Config Management
@@ -1145,6 +1655,12 @@ local function toggleFreecam()
         freecamConnection = game:GetService("RunService").RenderStepped:Connect(function(delta)
             if not freecamEnabled then return end
             
+            if char and rootPart then
+                rootPart.CanCollide = false
+                rootPart.Velocity = Vector3.new(0, 0, 0)
+                rootPart.RotVelocity = Vector3.new(0, 0, 0)
+            end
+            
             local mouseDelta = uis:GetMouseDelta()
             local sensitivity = 0.003
             
@@ -1167,6 +1683,9 @@ local function toggleFreecam()
         end)
     else
         if freecamConnection then freecamConnection:Disconnect() end
+        if char and rootPart then
+            rootPart.CanCollide = true
+        end
         cam.CameraType = Enum.CameraType.Custom
         cam.CameraSubject = originalCameraSubject or hum
         uis.MouseBehavior = Enum.MouseBehavior.Default
@@ -1570,10 +2089,15 @@ local function unloadCheat()
     if hitboxEnabled then toggleHitbox() end
     if aimbotEnabled then toggleAimbot() end
     if skyboxEnabled then toggleSkybox() end
-    if walljumpEnabled then toggleWalljump() end
-    if fakeLagEnabled then toggleFakeLag() end
-    if autoClickerEnabled then toggleAutoClicker() end
+    if invisibilityEnabled then toggleInvisibility() end
+    if itemESPEnabled then toggleItemESP() end
+    if fpsBoostEnabled then toggleFPSBoost() end
+    if antiAFKEnabled then toggleAntiAFK() end
+    if tracerLinesEnabled then toggleTracerLines() end
+    if healthBarsEnabled then toggleHealthBars() end
+    if trollToolsEnabled then showTrollTools() end
     
+    stopMusic()
     ScreenGui:Destroy()
 end
 
@@ -1618,11 +2142,11 @@ end)
 
 BloxFruitScriptButton.MouseButton1Click:Connect(function()
     pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/BloxFruits/main/Main.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/forsaken.lua", true))()
     end)
-    BloxFruitScriptButton.Text = "✅ Blox Fruit загружен!"
+    BloxFruitScriptButton.Text = "✅ Forsaken загружен!"
     wait(2)
-    BloxFruitScriptButton.Text = "🍎 Blox Fruit Script"
+    BloxFruitScriptButton.Text = "👹 Forsaken Script"
 end)
 
 PetSimScriptButton.MouseButton1Click:Connect(function()
@@ -1636,8 +2160,6 @@ end)
 
 BrainrotScriptButton.MouseButton1Click:Connect(loadBrainrotScript)
 DeadrelScriptButton.MouseButton1Click:Connect(loadDeadrelsScript)
-
-TPSelectedButton.MouseButton1Click:Connect(function()
     if selectedPlayerForTP and selectedPlayerForTP.Character then
         local targetRoot = selectedPlayerForTP.Character:FindFirstChild("HumanoidRootPart")
         if targetRoot and rootPart then
@@ -1654,7 +2176,27 @@ FakeLagButton.MouseButton1Click:Connect(toggleFakeLag)
 AutoClickerButton.MouseButton1Click:Connect(toggleAutoClicker)
 SaveConfigButton.MouseButton1Click:Connect(saveConfig)
 LoadConfigButton.MouseButton1Click:Connect(loadConfig)
-DupeItemsButton.MouseButton1Click:Connect(dupeItems)
+DupeItemsButton.MouseButton1Click:Connect(dupeItemsV2)
+
+InvisibilityButton.MouseButton1Click:Connect(toggleInvisibility)
+ItemESPButton.MouseButton1Click:Connect(toggleItemESP)
+FPSBoostButton.MouseButton1Click:Connect(toggleFPSBoost)
+ServerPrivateButton.MouseButton1Click:Connect(joinPrivateServer)
+AntiAFKButton.MouseButton1Click:Connect(toggleAntiAFK)
+TracerLinesButton.MouseButton1Click:Connect(toggleTracerLines)
+HealthBarsButton.MouseButton1Click:Connect(toggleHealthBars)
+OutfitCopierButton.MouseButton1Click:Connect(copyOutfit)
+TrollToolsButton.MouseButton1Click:Connect(showTrollTools)
+
+PlayMusicButton.MouseButton1Click:Connect(playMusic)
+StopMusicButton.MouseButton1Click:Connect(stopMusic)
+ServerInfoButton.MouseButton1Click:Connect(showServerInfo)
+PlayerAnalyticsButton.MouseButton1Click:Connect(showPlayerAnalytics)
+ScriptEditorButton.MouseButton1Click:Connect(showScriptEditor)
+
+ThemeDarkButton.MouseButton1Click:Connect(function() applyTheme("dark") end)
+ThemeLightButton.MouseButton1Click:Connect(function() applyTheme("light") end)
+ThemeCyberpunkButton.MouseButton1Click:Connect(function() applyTheme("cyberpunk") end)
 
 HitboxVisibleButton.MouseButton1Click:Connect(toggleHitboxVisible)
 ESPShowNameButton.MouseButton1Click:Connect(toggleESPName)
@@ -1748,9 +2290,13 @@ player.CharacterAdded:Connect(function(newChar)
     freecamEnabled = false
     hitboxEnabled = false
     aimbotEnabled = false
-    walljumpEnabled = false
-    fakeLagEnabled = false
-    autoClickerEnabled = false
+    invisibilityEnabled = false
+    itemESPEnabled = false
+    fpsBoostEnabled = false
+    antiAFKEnabled = false
+    tracerLinesEnabled = false
+    healthBarsEnabled = false
+    trollToolsEnabled = false
     
     updateButton(FlyButton, false)
     updateButton(InfJumpButton, false)
@@ -1761,9 +2307,13 @@ player.CharacterAdded:Connect(function(newChar)
     updateButton(FreecamButton, false)
     updateButton(HitboxButton, false)
     updateButton(AimbotButton, false)
-    updateButton(WalljumpButton, false)
-    updateButton(FakeLagButton, false)
-    updateButton(AutoClickerButton, false)
+    updateButton(InvisibilityButton, false)
+    updateButton(ItemESPButton, false)
+    updateButton(FPSBoostButton, false)
+    updateButton(AntiAFKButton, false)
+    updateButton(TracerLinesButton, false)
+    updateButton(HealthBarsButton, false)
+    updateButton(TrollToolsButton, false)
 end)
 
 -- Защита от обнаружения
