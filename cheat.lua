@@ -2158,8 +2158,7 @@ PetSimScriptButton.MouseButton1Click:Connect(function()
     PetSimScriptButton.Text = "🐕 Pet Sim Script"
 end)
 
-BrainrotScriptButton.MouseButton1Click:Connect(loadBrainrotScript)
-DeadrelScriptButton.MouseButton1Click:Connect(loadDeadrelsScript)
+TPSelectedButton.MouseButton1Click:Connect(function()
     if selectedPlayerForTP and selectedPlayerForTP.Character then
         local targetRoot = selectedPlayerForTP.Character:FindFirstChild("HumanoidRootPart")
         if targetRoot and rootPart then
