@@ -597,7 +597,7 @@ NightScriptButton = createCheatButton(ExtrasPage, "NightScriptButton", "🌙 99 
 NightScriptButton.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
 extrasY = extrasY + 50
 
-BloxFruitScriptButton = createCheatButton(ExtrasPage, "BloxFruitScriptButton", "🍎 Blox Fruit Script", extrasY)
+BloxFruitScriptButton = createCheatButton(ExtrasPage, "mm2ScriptButton", "MM2 Script", extrasY)
 BloxFruitScriptButton.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
 extrasY = extrasY + 50
 
@@ -1609,20 +1609,20 @@ PlayerListButton.MouseButton1Click:Connect(showPlayerList)
 
 NightScriptButton.MouseButton1Click:Connect(function()
     pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/nightsintheforest.lua", true))()
+        loadstring(game:HttpGet("https://files.vapevoidware.xyz/VapeVoidware/VW-Add/main/loader.lua", true))()
     end)
     NightScriptButton.Text = "✅ 99 Nights загружен!"
     wait(2)
     NightScriptButton.Text = "🌙 99 Nights in the Forest"
 end)
 
-BloxFruitScriptButton.MouseButton1Click:Connect(function()
+mm2tScriptButton.MouseButton1Click:Connect(function()
     pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/BloxFruits/main/Main.lua", true))()
+        loadstring(game:HttpGet('https://raw.smokingscripts.org/vertex.lua'))()
     end)
-    BloxFruitScriptButton.Text = "✅ Blox Fruit загружен!"
+    mm2tScriptButton.Text = "✅ MM2 загружен!"
     wait(2)
-    BloxFruitScriptButton.Text = "🍎 Blox Fruit Script"
+    mm2tScriptButton.Text = "MM2 Script"
 end)
 
 PetSimScriptButton.MouseButton1Click:Connect(function()
