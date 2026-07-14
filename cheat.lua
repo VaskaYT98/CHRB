@@ -1118,12 +1118,15 @@ local function toggleAntiAfk()
     antiAfkEnabled = not antiAfkEnabled
     updateButton(AntiAfkButton, antiAfkEnabled)
     if antiAfkEnabled then
+        local lastTick = 0
         antiAfkConnection = RunService.Heartbeat:Connect(function()
             if not antiAfkEnabled then return end
+            if tick() - lastTick < 120 then return end
+            lastTick = tick()
             pcall(function()
-                VirtualUser = game:GetService("VirtualUser")
-                VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-                VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+                local vu = game:GetService("VirtualUser")
+                vu:CaptureController()
+                vu:ClickButton1(Vector2.new(0, 0))
             end)
         end)
     else
