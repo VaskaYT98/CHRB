@@ -125,7 +125,7 @@ local services = {"Players", "RunService", "UserInputService", "Lighting", "Core
 local allOk = true
 for _, svc in ipairs(services) do
     if checkService(svc) then
-        updateUI("Сервис " .. svc + ": OK", 0.15)
+        updateUI("Сервис " .. svc .. ": OK", 0.15)
     else
         updateUI("Сервис " .. svc .. ": ОШИБКА!", 0.15, "[ERR] " .. svc .. " not found")
         allOk = false
