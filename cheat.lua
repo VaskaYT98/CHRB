@@ -76,9 +76,15 @@ end
 -- GUI
 dbg("Создание GUI...")
 local SG = Instance.new("ScreenGui"); SG.Name="CheatMenuV2"; SG.Parent=game.CoreGui; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; SG.ResetOnSpawn=false
-local MF = Instance.new("Frame"); MF.Name="MF"; MF.Parent=SG; MF.BackgroundColor3=T.bg; MF.BorderSizePixel=0; MF.Position=UDim2.new(0.5,-235,0.5,-265); MF.Size=UDim2.new(0,470,0,530); MF.Active=true; MF.Draggable=true; MF.ClipsDescendants=true; addC(MF,10); addS(MF,Color3.fromRGB(60,60,85),2)
+local MF = Instance.new("Frame"); MF.Name="MF"; MF.Parent=SG; MF.BackgroundColor3=T.bg; MF.BorderSizePixel=0; MF.Position=UDim2.new(0.5,-235,0.5,-265); MF.Size=UDim2.new(0,470,0,530); MF.ClipsDescendants=true; addC(MF,10); addS(MF,Color3.fromRGB(60,60,85),2)
 
 local TB = Instance.new("Frame"); TB.Parent=MF; TB.BackgroundColor3=T.top; TB.BorderSizePixel=0; TB.Size=UDim2.new(1,0,0,38)
+do
+    local dragging, dragStart, startPos = false, nil, nil
+    TB.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=true; dragStart=i.Position; startPos=MF.Position end end)
+    UIS.InputChanged:Connect(function(i) if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then local d=i.Position-dragStart; MF.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y) end end)
+    UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false end end)
+end
 local TL = Instance.new("TextLabel"); TL.Parent=TB; TL.BackgroundTransparency=1; TL.Position=UDim2.new(0,12,0,0); TL.Size=UDim2.new(1,-50,1,0); TL.Font=Enum.Font.GothamBold; TL.Text="Cheat by V98 | v2.1"; TL.TextColor3=Color3.fromRGB(255,255,255); TL.TextSize=15; TL.TextXAlignment=Enum.TextXAlignment.Left
 
 local HB = Instance.new("TextButton"); HB.Parent=TB; HB.BackgroundColor3=Color3.fromRGB(180,50,50); HB.BorderSizePixel=0; HB.Position=UDim2.new(1,-33,0,7); HB.Size=UDim2.new(0,24,0,24); HB.Font=Enum.Font.GothamBold; HB.Text="X"; HB.TextColor3=Color3.fromRGB(255,255,255); HB.TextSize=12; addC(HB,6)
@@ -93,7 +99,7 @@ dbg("GUI создано")
 
 local CF = Instance.new("Frame"); CF.Parent=MF; CF.BackgroundTransparency=1; CF.Position=UDim2.new(0,0,0,78); CF.Size=UDim2.new(1,0,1,-118)
 
-local function mkPage(n) local p=Instance.new("ScrollingFrame");p.Name=n;p.Parent=CF;p.BackgroundTransparency=1;p.Position=UDim2.new(0,8,0,0);p.Size=UDim2.new(1,-16,1,0);p.CanvasSize=UDim2.new(0,0,0,0);p.ScrollBarThickness=4;p.BorderSizePixel=0;p.Visible=false;p.ScrollingDirection=Enum.ScrollingDirection.Y;local l=Instance.new("UIListLayout");l.Parent=p;l.Padding=UDim.new(0,4);l.SortOrder=Enum.SortOrder.LayoutOrder;local pd=Instance.new("UIPadding");pd.PaddingBottom=UDim.new(0,10);pd.Parent=p;return p end
+local function mkPage(n) local p=Instance.new("ScrollingFrame");p.Name=n;p.Parent=CF;p.BackgroundTransparency=1;p.Position=UDim2.new(0,8,0,0);p.Size=UDim2.new(1,-16,1,0);p.AutomaticCanvasSize=Enum.AutomaticSize.Y;p.ScrollBarThickness=4;p.BorderSizePixel=0;p.Visible=false;p.ScrollingDirection=Enum.ScrollingDirection.Y;local l=Instance.new("UIListLayout");l.Parent=p;l.Padding=UDim.new(0,4);l.SortOrder=Enum.SortOrder.LayoutOrder;local pd=Instance.new("UIPadding");pd.PaddingBottom=UDim.new(0,10);pd.Parent=p;return p end
 
 dbg("Создание вкладок...")
 local MP,PP,VP,SP,XP = mkPage("MP"),mkPage("PP"),mkPage("VP"),mkPage("SP"),mkPage("XP")
@@ -128,16 +134,16 @@ local function mkSlider(par,nm,txt,mn,mx,def,cb)
     local fr=(def-mn)/(mx-mn)
     local fl=Instance.new("Frame");fl.Parent=bg;fl.BackgroundColor3=T.acc;fl.BorderSizePixel=0;fl.Size=UDim2.new(fr,0,1,0);addC(fl,6)
     local sb=Instance.new("TextButton");sb.Parent=bg;sb.BackgroundColor3=Color3.fromRGB(255,255,255);sb.BorderSizePixel=0;sb.Position=UDim2.new(fr,-6,0.5,-6);sb.Size=UDim2.new(0,12,0,12);sb.Text="";addC(sb,6)
-    local drag=false
-    sb.MouseButton1Down:Connect(function() drag=true end)
-    UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end end)
-    RunService.RenderStepped:Connect(function()
-        if drag then
+    local drag=false; local sConn=nil
+    sb.MouseButton1Down:Connect(function() drag=true
+        sConn=RunService.RenderStepped:Connect(function()
+            if not drag then if sConn then sConn:Disconnect() sConn=nil end return end
             local mx2=player:GetMouse();local rx=math.clamp(mx2.X-bg.AbsolutePosition.X,0,bg.AbsoluteSize.X)
             local pc=rx/bg.AbsoluteSize.X;local v=math.floor(mn+(mx-mn)*pc)
             fl.Size=UDim2.new(pc,0,1,0);sb.Position=UDim2.new(pc,-6,0.5,-6);lb.Text=txt..": "..v;cb(v)
-        end
+        end)
     end)
+    UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end end)
     return ct
 end
 
@@ -355,8 +361,8 @@ end
 local function toggleInvisible()
     S.invisible=not S.invisible; updBtn(bInv,S.invisible)
     local function setTr(t) for _,p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.Transparency=t elseif p:IsA("Decal") then p.Transparency=t end end end
-    if S.invisible then setTr(1); CON.invis=RunService.RenderStepped:Connect(function() if S.invisible and char then setTr(1) end end)
-    else if CON.invis then CON.invis:Disconnect() end if char then for _,p in pairs(char:GetDescendants()) do if p:IsA("BasePart") and p.Name~="HumanoidRootPart" then p.Transparency=0 elseif p:IsA("Decal") then p.Transparency=0 end end end end
+    if S.invisible then setTr(1); CON.invis=char.DescendantAdded:Connect(function(p) if S.invisible and (p:IsA("BasePart") or p:IsA("Decal")) then p.Transparency=1 end end)
+    else if CON.invis then CON.invis:Disconnect() CON.invis=nil end if char then for _,p in pairs(char:GetDescendants()) do if p:IsA("BasePart") and p.Name~="HumanoidRootPart" then p.Transparency=0 elseif p:IsA("Decal") then p.Transparency=0 end end end end
 end
 
 -- ANTI-AFK
@@ -376,6 +382,7 @@ local function toggleKillAura()
 end
 
 -- ESP
+local espDistLabels = {}
 local function mkESP(tc)
     if not tc or espObjs[tc] then return end
     local fo=Instance.new("Folder"); fo.Name="ESP_"..tc.Name; fo.Parent=tc; espObjs[tc]=fo
@@ -385,11 +392,11 @@ local function mkESP(tc)
         local bb=Instance.new("BillboardGui"); bb.Name="BB"; bb.Adornee=hd; bb.Size=UDim2.new(0,200,0,50); bb.StudsOffset=Vector3.new(0,3,0); bb.AlwaysOnTop=true; bb.Parent=fo
         local nl=Instance.new("TextLabel"); nl.Name="NL"; nl.Parent=bb; nl.BackgroundTransparency=1; nl.Size=UDim2.new(1,0,0.5,0); nl.Font=Enum.Font.GothamBold; nl.Text=tc.Name; nl.TextColor3=Color3.fromRGB(255,255,255); nl.TextScaled=true; nl.TextStrokeTransparency=0; nl.Visible=C.espName
         local dl=Instance.new("TextLabel"); dl.Name="DL"; dl.Parent=bb; dl.BackgroundTransparency=1; dl.Position=UDim2.new(0,0,0.5,0); dl.Size=UDim2.new(1,0,0.5,0); dl.Font=Enum.Font.Gotham; dl.Text="0m"; dl.TextColor3=Color3.fromRGB(255,255,255); dl.TextScaled=true; dl.TextStrokeTransparency=0; dl.Visible=C.espDist
-        spawn(function() while S.esp and tc and tc.Parent and rootPart do local tr=tc:FindFirstChild("HumanoidRootPart") if tr and dl then dl.Text=math.floor((rootPart.Position-tr.Position).Magnitude).."m" end wait(0.15) end end)
+        espDistLabels[tc] = dl
     end
 end
 
-local function rmESP(tc) if espObjs[tc] then espObjs[tc]:Destroy() espObjs[tc]=nil end end
+local function rmESP(tc) if espObjs[tc] then espObjs[tc]:Destroy() espObjs[tc]=nil end espDistLabels[tc]=nil end
 
 local function updAllESP()
     for _,fo in pairs(espObjs) do if fo and fo.Parent then local hl=fo:FindFirstChild("Highlight") if hl then hl.FillColor=Color3.fromRGB(C.espR,C.espG,C.espB) end local bb=fo:FindFirstChild("BB") if bb then local n=bb:FindFirstChild("NL") local d=bb:FindFirstChild("DL") if n then n.Visible=C.espName end if d then d.Visible=C.espDist end end end end
@@ -401,7 +408,21 @@ local function toggleESP()
         for _,p in pairs(Players:GetPlayers()) do if p~=player and p.Character then mkESP(p.Character) end end
         CON.esp=Players.PlayerAdded:Connect(function(p) p.CharacterAdded:Connect(function(c) if S.esp then wait(0.5) mkESP(c) end end) end)
         for _,p in pairs(Players:GetPlayers()) do if p~=player then p.CharacterAdded:Connect(function(c) if S.esp then wait(0.5) mkESP(c) end end) end end
-    else if CON.esp then CON.esp:Disconnect() end for tc,_ in pairs(espObjs) do rmESP(tc) end end
+        CON.espDist=RunService.Heartbeat:Connect(function()
+            if not S.esp or not rootPart or not rootPart.Parent then return end
+            for tc,dl in pairs(espDistLabels) do
+                if tc and tc.Parent and dl and dl.Parent then
+                    local tr=tc:FindFirstChild("HumanoidRootPart")
+                    if tr then dl.Text=math.floor((rootPart.Position-tr.Position).Magnitude).."m" end
+                else espDistLabels[tc]=nil end
+            end
+        end)
+    else
+        if CON.esp then CON.esp:Disconnect() end
+        if CON.espDist then CON.espDist:Disconnect() CON.espDist=nil end
+        for tc,_ in pairs(espObjs) do rmESP(tc) end
+        espDistLabels={}
+    end
 end
 
 -- ITEM ESP
