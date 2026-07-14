@@ -215,32 +215,30 @@ if not scriptCode then
     return
 end
 
--- Шаг 7: Загрузка скрипта
-updateUI("Загрузка cheat.lua...", 0.85, "Compiling " .. #scriptCode .. " bytes...")
+-- Шаг 7: Проверка содержимого
+local preview = string.sub(scriptCode, 1, 100)
+updateUI("Проверка кода...", 0.83, "First 100 chars: " .. preview)
 task.wait(0.3)
 
-local compileOk, compileErr = pcall(function()
-    -- Проверяем что код компилируется
-    local fn, compileMsg = loadstring(scriptCode)
-    if not fn then
-        error("Compile error: " .. tostring(compileMsg))
-    end
-    updateUI("Компиляция: OK", 0.9, "Compile: OK")
-end)
+-- Шаг 8: Компиляция
+updateUI("Компиляция...", 0.85, "Compiling " .. #scriptCode .. " bytes...")
 
-if not compileOk then
+local fn, compileErr = loadstring(scriptCode)
+if not fn then
     updateUI("ОШИБКА КОМПИЛЯЦИИ!", 0.9, "[ERR] " .. tostring(compileErr))
     task.wait(5)
     ScreenGui:Destroy()
     return
 end
+updateUI("Компиляция: OK", 0.9, "Compile: OK")
+task.wait(0.2)
 
--- Шаг 8: Запуск
+-- Шаг 9: Запуск
 updateUI("Запуск cheat.lua...", 0.95, "Executing...")
 task.wait(0.2)
 
 local execOk, execErr = pcall(function()
-    loadstring(scriptCode)()
+    fn()
 end)
 
 if execOk then
