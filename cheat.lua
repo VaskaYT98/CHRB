@@ -172,7 +172,6 @@ TopBar.Parent = MainFrame
 TopBar.BackgroundColor3 = T.topBar
 TopBar.BorderSizePixel = 0
 TopBar.Size = UDim2.new(1, 0, 0, 38)
-addCorner(MainFrame, 10)
 
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Parent = TopBar
@@ -280,7 +279,7 @@ Footer.BackgroundColor3 = T.topBar
 Footer.BorderSizePixel = 0
 Footer.Position = UDim2.new(0, 0, 1, -40)
 Footer.Size = UDim2.new(1, 0, 0, 40)
-addCorner(MainFrame, 10)
+addCorner(Footer, 6)
 
 local AvatarFrame = Instance.new("Frame")
 AvatarFrame.Parent = Footer
@@ -626,7 +625,7 @@ createLabel(ScriptsPage, "ВСТРОЕННЫЕ СКРИПТЫ")
 local NightScriptBtn = createCheatButton(ScriptsPage, "NightScriptBtn", "99 Nights in the Forest")
 NightScriptBtn.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
 local MM2ScriptBtn = createCheatButton(ScriptsPage, "MM2ScriptBtn", "MM2 Script")
-MM2ScriptBtn.BackgroundColor3 = Color3.fromUTF8 and Color3.fromRGB(255, 100, 50) or Color3.fromRGB(255, 100, 50)
+MM2ScriptBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
 
 createLabel(ScriptsPage, "ИНСТРУМЕНТЫ")
 local ScriptEditorBtn = createCheatButton(ScriptsPage, "ScriptEditorBtn", "Script Editor")
