@@ -168,42 +168,48 @@ else
 end
 task.wait(0.2)
 
--- Шаг 6: Поиск cheat.lua
-updateUI("Поиск cheat.lua...", 0.7, "Searching for cheat.lua...")
+-- Шаг 6: Загрузка cheat.lua
+updateUI("Загрузка cheat.lua...", 0.7, "Loading from GitHub...")
 task.wait(0.3)
 
 local scriptCode = nil
 local loaded = false
 
--- Способ 1: readfile (Solara V3)
-local paths = {
-    "cheat.lua",
-    "RB-v98/cheat.lua",
-    "scripts/cheat.lua",
-    "autoexec/cheat.lua",
+-- Способ 1: Скачиваем из GitHub
+local githubUrls = {
+    "https://raw.githubusercontent.com/VaskaYT98/CHRB/main/cheat.lua",
 }
 
-for _, path in ipairs(paths) do
-    local ok, content = pcall(readfile, path)
+for _, url in ipairs(githubUrls) do
+    local ok, content = pcall(game.HttpGet, game, url, true)
     if ok and content and content ~= "" then
         scriptCode = content
-        updateUI("Найден: " .. path, 0.8, "Found: " .. path .. " (" .. #content .. " bytes)")
+        updateUI("Скачано из GitHub!", 0.8, "Downloaded: " .. #content .. " bytes")
         loaded = true
         break
+    else
+        updateUI("GitHub: ошибка, пробуем дальше...", 0.75, "[WARN] Failed: " .. tostring(content))
     end
 end
 
--- Способ 2: Если не нашли файл — вставь код сюда
+-- Способ 2: readfile (если файл локально)
 if not loaded then
-    updateUI("Файл не найден! Вставь код в scriptCode...", 0.8, "[WARN] File not found, trying inline...")
-    task.wait(1)
-    -- Если Solara не поддерживает readfile, можно вставить содержимое cheat.lua сюда:
-    -- scriptCode = [==[ ... код cheat.lua ... ]==]
+    updateUI("Поиск локального файла...", 0.78, "Trying local file...")
+    local paths = {"cheat.lua", "RB-v98/cheat.lua", "scripts/cheat.lua", "autoexec/cheat.lua"}
+    for _, path in ipairs(paths) do
+        local ok, content = pcall(readfile, path)
+        if ok and content and content ~= "" then
+            scriptCode = content
+            updateUI("Найден: " .. path, 0.8, "Local: " .. path .. " (" .. #content .. " bytes)")
+            loaded = true
+            break
+        end
+    end
 end
 
 if not scriptCode then
-    updateUI("ОШИБКА: cheat.lua не найден!", 0.9, "[ERR] Cannot find cheat.lua")
-    updateUI("Положи cheat.lua рядом с loader.lua", 0.9)
+    updateUI("ОШИБКА: cheat.lua не найден!", 0.9, "[ERR] Cannot load cheat.lua")
+    updateUI("Проверь GitHub репозиторий", 0.9)
     task.wait(5)
     ScreenGui:Destroy()
     return
