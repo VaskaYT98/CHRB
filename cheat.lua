@@ -1,15 +1,24 @@
 -- Cheat Menu V2.0 by V98 - Modern Edition
+local loadStart = tick()
+local function dbg(msg)
+    print("[Cheat V2] " .. string.format("%.2f", tick() - loadStart) .. "s | " .. msg)
+end
+
+dbg("Загрузка сервисов...")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 local TeleportService = game:GetService("TeleportService")
 local SoundService = game:GetService("SoundService")
+dbg("Сервисы загружены")
 
+dbg("Получение LocalPlayer...")
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hum = char:WaitForChild("Humanoid")
 local rootPart = char:WaitForChild("HumanoidRootPart")
+dbg("Player: " .. player.Name .. " | Char: " .. char.Name)
 
 -- ============================================================
 -- STATE
@@ -147,6 +156,7 @@ end
 -- ============================================================
 -- GUI
 -- ============================================================
+dbg("Создание GUI...")
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CheatMenuV2"
 ScreenGui.Parent = game.CoreGui
@@ -233,6 +243,7 @@ local ScriptsTabBtn = createTabButton("ScriptsTab", "Скрипты")
 local SettingsTabBtn = createTabButton("SettingsTab", "Настройки")
 
 MainTabBtn.BackgroundColor3 = T.accent
+dbg("GUI создано, создание контента...")
 
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Name = "ContentFrame"
@@ -264,6 +275,7 @@ local function createPage(name)
     return page
 end
 
+dbg("Создание вкладок...")
 local MainPage = createPage("MainPage")
 local PvPPage = createPage("PvPPage")
 local VisualsPage = createPage("VisualsPage")
@@ -543,6 +555,7 @@ SettingsTabBtn.MouseButton1Click:Connect(function() switchTab("settings") end)
 -- ============================================================
 -- MAIN TAB
 -- ============================================================
+dbg("Main tab...")
 createLabel(MainPage, "ОСНОВНЫЕ ЧИТЫ")
 local FlyButton = createCheatButton(MainPage, "FlyButton", "Fly: OFF [F]")
 local InfJumpButton = createCheatButton(MainPage, "InfJumpButton", "Inf Jump: OFF [J]")
@@ -569,6 +582,7 @@ createSlider(MainPage, "WalkSpeedSlider", "Скорость ходьбы", 16, 2
 -- ============================================================
 -- PVP TAB
 -- ============================================================
+dbg("PvP tab...")
 createLabel(PvPPage, "PVP ЧИТЫ")
 local KillAuraButton = createCheatButton(PvPPage, "KillAuraButton", "Kill Aura: OFF [K]")
 local AimbotButton = createCheatButton(PvPPage, "AimbotButton", "Aimbot: OFF [X]")
@@ -595,6 +609,7 @@ end)
 -- ============================================================
 -- VISUALS TAB
 -- ============================================================
+dbg("Visuals tab...")
 createLabel(VisualsPage, "ВИЗУАЛЬНЫЕ ЭФФЕКТЫ")
 local ESPButton = createCheatButton(VisualsPage, "ESPButton", "ESP: OFF [E]")
 local ItemEspBtn = createCheatButton(VisualsPage, "ItemEspBtn", "Item ESP: OFF")
@@ -621,6 +636,7 @@ createSlider(VisualsPage, "AmbientSlider", "Ambient", 0, 255, 128, function(v) L
 -- ============================================================
 -- SCRIPTS TAB
 -- ============================================================
+dbg("Scripts tab...")
 createLabel(ScriptsPage, "ВСТРОЕННЫЕ СКРИПТЫ")
 local NightScriptBtn = createCheatButton(ScriptsPage, "NightScriptBtn", "99 Nights in the Forest")
 NightScriptBtn.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
@@ -642,6 +658,7 @@ SitBtn.BackgroundColor3 = Color3.fromRGB(150, 80, 50)
 -- ============================================================
 -- SETTINGS TAB
 -- ============================================================
+dbg("Settings tab...")
 createLabel(SettingsPage, "ТЕМА ОФОРМЛЕНИЯ")
 local themeRow = createSmallRow(SettingsPage)
 for i, th in ipairs(themes) do
@@ -701,6 +718,7 @@ UnloadButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
 -- ============================================================
 -- OVERLAYS
 -- ============================================================
+dbg("Overlays...")
 local overlayFrame = Instance.new("Frame")
 overlayFrame.Parent = ScreenGui
 overlayFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
@@ -923,6 +941,7 @@ PlayerAnalyticsBtn.MouseButton1Click:Connect(showPlayerAnalytics)
 -- ============================================================
 -- FLY
 -- ============================================================
+dbg("Feature: Fly")
 local flying = false
 local flyConn = nil
 
@@ -1118,15 +1137,11 @@ local function toggleAntiAfk()
     antiAfkEnabled = not antiAfkEnabled
     updateButton(AntiAfkButton, antiAfkEnabled)
     if antiAfkEnabled then
-        local lastTick = 0
-        antiAfkConnection = RunService.Heartbeat:Connect(function()
-            if not antiAfkEnabled then return end
-            if tick() - lastTick < 120 then return end
-            lastTick = tick()
+        antiAfkConnection = player.Idled:Connect(function()
             pcall(function()
                 local vu = game:GetService("VirtualUser")
                 vu:CaptureController()
-                vu:ClickButton1(Vector2.new(0, 0))
+                vu:ClickButton1(Vector2.new())
             end)
         end)
     else
@@ -1718,6 +1733,7 @@ end
 -- ============================================================
 -- SETUP BUTTONS
 -- ============================================================
+dbg("Подключение кнопок...")
 local function setupCheatButton(button, toggleFunc, bindName)
     local prefix = button.Text:match("^[^:]+")
     bindPrefixes[bindName] = prefix
@@ -1775,6 +1791,7 @@ end)
 -- ============================================================
 -- KEYBINDS
 -- ============================================================
+dbg("Настройка биндов...")
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
     if waitingForBind then
@@ -1833,6 +1850,7 @@ end)
 -- ============================================================
 -- CHARACTER RESPAWN
 -- ============================================================
+dbg("Character respawn handler...")
 player.CharacterAdded:Connect(function(newChar)
     char = newChar
     hum = char:WaitForChild("Humanoid")
@@ -1891,6 +1909,7 @@ end)
 -- ============================================================
 -- ANTI-DETECTION
 -- ============================================================
+dbg("Anti-detection...")
 pcall(function()
     local mt = getrawmetatable(game)
     local oldNamecall = mt.__namecall
@@ -1903,4 +1922,8 @@ pcall(function()
     setreadonly(mt, true)
 end)
 
-print("Cheat by V98 v2.0 ULTIMATE загружено!")
+dbg("Anti-detection: OK")
+print("[Cheat V2] ============================================")
+print("[Cheat V2] Cheat by V98 v2.0 ULTIMATE загружено!")
+print("[Cheat V2] Время загрузки: " .. string.format("%.2f", tick() - loadStart) .. "s")
+print("[Cheat V2] ============================================")
