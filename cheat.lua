@@ -1,6 +1,6 @@
--- Cheat Menu V2.1 by V98 - Modern Edition (register-optimized)
+-- Cheat Menu V3.0 by V98 - ULTIMATE Edition
 local loadStart = tick()
-local function dbg(msg) print("[Cheat V2] " .. string.format("%.2f", tick() - loadStart) .. "s | " .. msg) end
+local function dbg(msg) print("[Cheat V3] " .. string.format("%.2f", tick() - loadStart) .. "s | " .. msg) end
 
 dbg("Загрузка сервисов...")
 local Players = game:GetService("Players")
@@ -9,6 +9,7 @@ local UIS = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 local TeleportService = game:GetService("TeleportService")
 local SoundService = game:GetService("SoundService")
+local TS = game:GetService("TweenService")
 dbg("Сервисы загружены")
 
 local player = Players.LocalPlayer
@@ -24,11 +25,13 @@ local S = {
     hitbox=false, aimbot=false, skybox=false, invisible=false, antiAfk=false,
     itemEsp=false, tracer=false, healthBar=false, fpsBoost=false,
     fling=false, sit=false, flying=false, hitboxVis=false,
+    boxEsp=false, jpEnabled=false, tpMouse=false,
 }
 local C = {
     flyType="normal", defSpeed=16, speed=50, flySpeed=50,
     kaRange=20, hbSize=5, aimFOV=200,
     espR=255, espG=50, espB=50, espName=true, espDist=true,
+    jumpPow=50,
 }
 local CON = {} -- connections
 local B = {
@@ -36,11 +39,18 @@ local B = {
     infJump=Enum.KeyCode.J, speed=Enum.KeyCode.V, fullbright=Enum.KeyCode.B,
     freecam=Enum.KeyCode.C, killAura=Enum.KeyCode.K, esp=Enum.KeyCode.E,
     hitbox=Enum.KeyCode.H, aimbot=Enum.KeyCode.X,
+    boxEsp=Enum.KeyCode.Y, tpMouse=Enum.KeyCode.P,
 }
 local espObjs = {}
 local hbSizes = {}
 local origLight = {}
 local origSky = nil
+local keysDown = {}
+UIS.InputBegan:Connect(function(i,gp) if not gp and i.KeyCode and i.KeyCode~=Enum.KeyCode.Unknown then keysDown[i.KeyCode]=true end end)
+UIS.InputEnded:Connect(function(i) if i.KeyCode and i.KeyCode~=Enum.KeyCode.Unknown then keysDown[i.KeyCode]=nil end end)
+local function isKeyDown(kc) return keysDown[kc]==true end
+local SG
+local updFooter
 local waitingBind = nil
 local waitBindBtn = nil
 local bindPrefix = {}
@@ -71,11 +81,46 @@ local function addP(p,t,b,l,r) local pv=Instance.new("UIPadding");pv.PaddingTop=
 local function updBtn(b,en)
     if en then b.BackgroundColor3=T.acc; b.Text=b.Text:gsub("OFF","ON")
     else b.BackgroundColor3=T.btn; b.Text=b.Text:gsub("ON","OFF") end
+    if updFooter then updFooter() end
+end
+
+local function tween(obj,ti,props) pcall(function() TS:Create(obj,ti or TweenInfo.new(0.25,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),props):Play() end) end
+local function hoverBtn(b,isActive)
+    b.MouseEnter:Connect(function() if not isActive() then tween(b,TweenInfo.new(0.15),{BackgroundColor3=Color3.new(math.min(b.BackgroundColor3.R+0.06,1),math.min(b.BackgroundColor3.G+0.06,1),math.min(b.BackgroundColor3.B+0.06,1))}) end end)
+    b.MouseLeave:Connect(function() if not isActive() then tween(b,TweenInfo.new(0.15),{BackgroundColor3=T.btn}) end end)
+end
+
+-- NOTIFICATION SYSTEM
+local function notify(msg,color)
+    pcall(function()
+        local nf=Instance.new("Frame");nf.Parent=SG;nf.AnchorPoint=Vector2.new(1,0);nf.Position=UDim2.new(1,-10,0,10);nf.Size=UDim2.new(0,0,0,36);nf.BackgroundColor3=color or T.acc;nf.BorderSizePixel=0;nf.ZIndex=500;addC(nf,8);addS(nf,Color3.new(1,1,1),0.5)
+        local nl=Instance.new("TextLabel");nl.Parent=nf;nl.BackgroundTransparency=1;nl.Position=UDim2.new(0,12,0,0);nl.Size=UDim2.new(1,-20,1,0);nl.Font=Enum.Font.GothamBold;nl.Text=msg;nl.TextColor3=Color3.fromRGB(255,255,255);nl.TextSize=12;nl.TextXAlignment=Enum.TextXAlignment.Left;nl.ZIndex=501
+        tween(nf,TweenInfo.new(0.4,Enum.EasingStyle.Back),{Size=UDim2.new(0,280,0,36)})
+        delay(2,function() tween(nf,TweenInfo.new(0.3,Enum.EasingStyle.Quart),{Size=UDim2.new(0,0,0,36),BackgroundTransparency=1}) tween(nl,TweenInfo.new(0.25),{TextTransparency=1}) wait(0.35) nf:Destroy() end)
+    end)
 end
 
 -- GUI
 dbg("Создание GUI...")
-local SG = Instance.new("ScreenGui"); SG.Name="CheatMenuV2"; SG.Parent=game.CoreGui; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; SG.ResetOnSpawn=false
+SG = Instance.new("ScreenGui"); SG.Name="CheatMenuV3"; SG.Parent=game.CoreGui; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; SG.ResetOnSpawn=false
+
+-- LOADING SCREEN
+local LF=Instance.new("Frame");LF.Parent=SG;LF.BackgroundColor3=Color3.fromRGB(12,12,18);LF.Size=UDim2.new(1,0,1,0);LF.BorderSizePixel=0;LF.ZIndex=999
+local LC=Instance.new("TextLabel");LC.Parent=LF;LC.BackgroundTransparency=1;LC.Position=UDim2.new(0.5,-150,0.35,0);LC.Size=UDim2.new(0,300,0,40);LC.Font=Enum.Font.GothamBold;LC.Text="V98 CHEAT";LC.TextColor3=Color3.fromRGB(255,255,255);LC.TextSize=28;LC.ZIndex=1000
+local LV=Instance.new("TextLabel");LV.Parent=LF;LV.BackgroundTransparency=1;LV.Position=UDim2.new(0.5,-150,0.35,45);LV.Size=UDim2.new(0,300,0,20);LV.Font=Enum.Font.Gotham;LV.Text="v3.0 ULTIMATE";LV.TextColor3=Color3.fromRGB(120,120,140);LV.TextSize=14;LV.ZIndex=1000
+local LB=Instance.new("Frame");LB.Parent=LF;LB.BackgroundColor3=Color3.fromRGB(30,30,42);LB.Position=UDim2.new(0.5,-150,0.55,0);LB.Size=UDim2.new(0,300,0,6);LB.ZIndex=1000;addC(LB,3)
+local LP=Instance.new("Frame");LP.Parent=LB;LP.BackgroundColor3=Color3.fromRGB(80,200,100);LP.Size=UDim2.new(0,0,1,0);LP.ZIndex=1001;addC(LP,3)
+local LS=Instance.new("TextLabel");LS.Parent=LF;LS.BackgroundTransparency=1;LS.Position=UDim2.new(0.5,-150,0.55,14);LS.Size=UDim2.new(0,300,0,20);LS.Font=Enum.Font.Gotham;LS.Text="Загрузка...";LS.TextColor3=Color3.fromRGB(160,160,180);LS.TextSize=11;LS.ZIndex=1000
+-- animate loading
+spawn(function()
+    for i=1,20 do LP.Size=UDim2.new(i/20,0,1,0);wait(0.03) end
+    LS.Text="Готово!"
+    tween(LP,TweenInfo.new(0.3),{BackgroundColor3=Color3.fromRGB(50,150,80)})
+    tween(LF,TweenInfo.new(0.4,Enum.EasingStyle.Quart),{BackgroundTransparency=1})
+    for _,v in pairs(LF:GetDescendants()) do if v:IsA("TextLabel") then tween(v,TweenInfo.new(0.3),{TextTransparency=1}) elseif v:IsA("Frame") then tween(v,TweenInfo.new(0.3),{BackgroundTransparency=1}) end end
+    wait(0.5)
+    LF:Destroy()
+end)
 local MF = Instance.new("Frame"); MF.Name="MF"; MF.Parent=SG; MF.BackgroundColor3=T.bg; MF.BorderSizePixel=0; MF.Position=UDim2.new(0.5,-235,0.5,-265); MF.Size=UDim2.new(0,470,0,530); MF.ClipsDescendants=true; addC(MF,10); addS(MF,Color3.fromRGB(60,60,85),2)
 
 local TB = Instance.new("Frame"); TB.Parent=MF; TB.BackgroundColor3=T.top; TB.BorderSizePixel=0; TB.Size=UDim2.new(1,0,0,38)
@@ -85,7 +130,7 @@ do
     UIS.InputChanged:Connect(function(i) if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then local d=i.Position-dragStart; MF.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y) end end)
     UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=false end end)
 end
-local TL = Instance.new("TextLabel"); TL.Parent=TB; TL.BackgroundTransparency=1; TL.Position=UDim2.new(0,12,0,0); TL.Size=UDim2.new(1,-50,1,0); TL.Font=Enum.Font.GothamBold; TL.Text="Cheat by V98 | v2.1"; TL.TextColor3=Color3.fromRGB(255,255,255); TL.TextSize=15; TL.TextXAlignment=Enum.TextXAlignment.Left
+local TL = Instance.new("TextLabel"); TL.Parent=TB; TL.BackgroundTransparency=1; TL.Position=UDim2.new(0,12,0,0); TL.Size=UDim2.new(1,-50,1,0); TL.Font=Enum.Font.GothamBold; TL.Text="Cheat by V98 | v3.0"; TL.TextColor3=Color3.fromRGB(255,255,255); TL.TextSize=15; TL.TextXAlignment=Enum.TextXAlignment.Left
 
 local HB = Instance.new("TextButton"); HB.Parent=TB; HB.BackgroundColor3=Color3.fromRGB(180,50,50); HB.BorderSizePixel=0; HB.Position=UDim2.new(1,-33,0,7); HB.Size=UDim2.new(0,24,0,24); HB.Font=Enum.Font.GothamBold; HB.Text="X"; HB.TextColor3=Color3.fromRGB(255,255,255); HB.TextSize=12; addC(HB,6)
 
@@ -111,14 +156,40 @@ local AF = Instance.new("Frame"); AF.Parent=FT; AF.BackgroundColor3=T.acc; AF.Po
 local AL = Instance.new("TextLabel"); AL.Parent=AF; AL.BackgroundTransparency=1; AL.Size=UDim2.new(1,0,1,0); AL.Font=Enum.Font.GothamBold; AL.Text=string.sub(player.Name,1,1):upper(); AL.TextColor3=Color3.fromRGB(255,255,255); AL.TextSize=14
 local NL = Instance.new("TextLabel"); NL.Parent=FT; NL.BackgroundTransparency=1; NL.Position=UDim2.new(0,42,0,2); NL.Size=UDim2.new(0.5,0,0,18); NL.Font=Enum.Font.GothamBold; NL.Text=player.Name; NL.TextColor3=Color3.fromRGB(255,255,255); NL.TextSize=12; NL.TextXAlignment=Enum.TextXAlignment.Left
 local IL = Instance.new("TextLabel"); IL.Parent=FT; IL.BackgroundTransparency=1; IL.Position=UDim2.new(0,42,0,20); IL.Size=UDim2.new(0.5,0,0,16); IL.Font=Enum.Font.Gotham; IL.Text="ID: "..player.UserId; IL.TextColor3=T.dim; IL.TextSize=10; IL.TextXAlignment=Enum.TextXAlignment.Left
-local VL = Instance.new("TextLabel"); VL.Parent=FT; VL.BackgroundTransparency=1; VL.Position=UDim2.new(0.6,0,0,2); VL.Size=UDim2.new(0.38,0,1,0); VL.Font=Enum.Font.Gotham; VL.Text="v2.1"; VL.TextColor3=T.dim; VL.TextSize=10; VL.TextXAlignment=Enum.TextXAlignment.Right
+local VL = Instance.new("TextLabel"); VL.Parent=FT; VL.BackgroundTransparency=1; VL.Position=UDim2.new(0.6,0,0,2); VL.Size=UDim2.new(0.38,0,1,0); VL.Font=Enum.Font.Gotham; VL.Text="v3.0 | 0 active"; VL.TextColor3=T.dim; VL.TextSize=10; VL.TextXAlignment=Enum.TextXAlignment.Right
 
-local SB2 = Instance.new("TextButton"); SB2.Parent=SG; SB2.BackgroundColor3=T.panel; SB2.BorderSizePixel=0; SB2.Position=UDim2.new(0,10,0,10); SB2.Size=UDim2.new(0,130,0,40); SB2.Font=Enum.Font.GothamBold; SB2.Text="Открыть меню"; SB2.TextColor3=Color3.fromRGB(255,255,255); SB2.TextSize=12; SB2.Visible=false; addC(SB2,8); addS(SB2)
+local function countActive()
+    local n=0
+    for _,v in pairs(S) do if v==true then n=n+1 end end
+    return n
+end
+updFooter = function() local c=countActive(); VL.Text="v3.0 | "..c.." active"; if c>0 then VL.TextColor3=T.acc else VL.TextColor3=T.dim end end
+
+-- HUD OVERLAY (always visible)
+local HUD=Instance.new("Frame");HUD.Parent=SG;HUD.AnchorPoint=Vector2.new(0,0.5);HUD.Position=UDim2.new(0,10,0.5,0);HUD.Size=UDim2.new(0,120,0,70);HUD.BackgroundColor3=Color3.fromRGB(12,12,18);HUD.BackgroundTransparency=0.4;HUD.BorderSizePixel=0;HUD.ZIndex=50;addC(HUD,10)
+local hudFPS=Instance.new("TextLabel");hudFPS.Parent=HUD;hudFPS.BackgroundTransparency=1;hudFPS.Position=UDim2.new(0,8,0,4);hudFPS.Size=UDim2.new(1,-16,0,18);hudFPS.Font=Enum.Font.Code;hudFPS.Text="FPS: --";hudFPS.TextColor3=Color3.fromRGB(100,255,100);hudFPS.TextSize=11;hudFPS.TextXAlignment=Enum.TextXAlignment.Left;hudFPS.ZIndex=51
+local hudPing=Instance.new("TextLabel");hudPing.Parent=HUD;hudPing.BackgroundTransparency=1;hudPing.Position=UDim2.new(0,8,0,22);hudPing.Size=UDim2.new(1,-16,0,18);hudPing.Font=Enum.Font.Code;hudPing.Text="Ping: --ms";hudPing.TextColor3=Color3.fromRGB(255,255,100);hudPing.TextSize=11;hudPing.TextXAlignment=Enum.TextXAlignment.Left;hudPing.ZIndex=51
+local hudAct=Instance.new("TextLabel");hudAct.Parent=HUD;hudAct.BackgroundTransparency=1;hudAct.Position=UDim2.new(0,8,0,40);hudAct.Size=UDim2.new(1,-16,0,18);hudAct.Font=Enum.Font.Code;hudAct.Text="Active: 0";hudAct.TextColor3=Color3.fromRGB(100,200,255);hudAct.TextSize=11;hudAct.TextXAlignment=Enum.TextXAlignment.Left;hudAct.ZIndex=51
+addC(hudFPS,4);addC(hudPing,4);addC(hudAct,4)
+-- FPS/Ping updater (once per second)
+local hudTick=tick() local hudFpsCount=0
+RunService.RenderStepped:Connect(function()
+    hudFpsCount=hudFpsCount+1
+    local now=tick()
+    if now-hudTick>=1 then
+        hudFPS.Text="FPS: "..hudFpsCount;hudFpsCount=0;hudTick=now
+        pcall(function() hudPing.Text="Ping: "..math.floor(player:GetNetworkPing()*1000).."ms" end)
+        hudAct.Text="Active: "..countActive()
+        if not MF.Visible then FL.Text=tostring(countActive()) end
+    end
+end)
 
 -- UI CREATORS
 local ord = 0
 local function mkBtn(par,nm,txt)
     ord=ord+1; local b=Instance.new("TextButton");b.Name=nm;b.Parent=par;b.BackgroundColor3=T.btn;b.BorderSizePixel=0;b.Size=UDim2.new(1,0,0,38);b.Font=Enum.Font.GothamBold;b.Text=txt;b.TextColor3=Color3.fromRGB(255,255,255);b.TextSize=13;b.LayoutOrder=ord;b.AutoButtonColor=false;addC(b,8)
+    b.MouseEnter:Connect(function() if b.BackgroundColor3~=T.acc then tween(b,TweenInfo.new(0.15),{BackgroundColor3=Color3.new(math.min(b.BackgroundColor3.R+0.06,1),math.min(b.BackgroundColor3.G+0.06,1),math.min(b.BackgroundColor3.B+0.06,1))}) end end)
+    b.MouseLeave:Connect(function() if b.BackgroundColor3~=T.acc then tween(b,TweenInfo.new(0.15),{BackgroundColor3=T.btn}) end end)
     return b
 end
 
@@ -155,7 +226,7 @@ local function mkInput(par,nm,ph) ord=ord+1; local t=Instance.new("TextBox");t.N
 local allP={MP,PP,VP,SP,XP}
 local allB={tMB,tPB,tVB,tSB,tTB2}
 local tabMap={main=1,pvp=2,visuals=3,scripts=4,settings=5}
-local function swTab(t) curTab=t;for _,p in pairs(allP) do p.Visible=false end;for _,b in pairs(allB) do b.BackgroundColor3=T.btn end;local i=tabMap[t];if i then allP[i].Visible=true;allB[i].BackgroundColor3=T.acc end end
+local function swTab(t) curTab=t;for _,p in pairs(allP) do p.Visible=false end;for _,b in pairs(allB) do b.BackgroundColor3=T.btn end;local i=tabMap[t];if i then allP[i].Position=UDim2.new(0,20,0,0);allP[i].Visible=true;tween(allP[i],TweenInfo.new(0.2,Enum.EasingStyle.Quart),{Position=UDim2.new(0,8,0,0)});allB[i].BackgroundColor3=T.acc end end
 tMB.MouseButton1Click:Connect(function() swTab("main") end)
 tPB.MouseButton1Click:Connect(function() swTab("pvp") end)
 tVB.MouseButton1Click:Connect(function() swTab("visuals") end)
@@ -173,6 +244,8 @@ local bSpd=mkBtn(MP,"Spd","Speed: OFF [V]")
 local bFree=mkBtn(MP,"Free","Freecam: OFF [C]")
 local bInv=mkBtn(MP,"Inv","Invisible: OFF")
 local bAnti=mkBtn(MP,"Anti","Anti-AFK: OFF")
+local bJp=mkBtn(MP,"JP","Jump Power: OFF")
+local bTp=mkBtn(MP,"TP","TP to Mouse: OFF [P]")
 
 mkLbl(MP,"ТИП ПОЛЕТА")
 local ftr=mkRow(MP)
@@ -186,6 +259,7 @@ bFN.BackgroundColor3=T.acc
 mkLbl(MP,"НАСТРОЙКИ")
 mkSlider(MP,"FlySpd","Скорость полёта",10,200,50,function(v) C.flySpeed=v end)
 mkSlider(MP,"WalkSpd","Скорость ходьбы",16,200,50,function(v) C.speed=v if S.speed and hum then hum.WalkSpeed=v end end)
+mkSlider(MP,"JmpPow","Сила прыжка",20,200,50,function(v) C.jumpPow=v if S.jpEnabled and hum then hum.JumpPower=v end end)
 
 -- ====================== PVP TAB ======================
 dbg("PvP tab...")
@@ -209,6 +283,7 @@ end)
 dbg("Visuals tab...")
 mkLbl(VP,"ВИЗУАЛЬНЫЕ ЭФФЕКТЫ")
 local bESP=mkBtn(VP,"ESP","ESP: OFF [E]")
+local bBE=mkBtn(VP,"BE","Box ESP: OFF [Y]")
 local bIE=mkBtn(VP,"IE","Item ESP: OFF")
 local bFB=mkBtn(VP,"FB","Fullbright: OFF [B]")
 local bSky=mkBtn(VP,"Sky","Custom Skybox: OFF")
@@ -267,12 +342,12 @@ local oF=Instance.new("Frame");oF.Parent=SG;oF.BackgroundColor3=Color3.fromRGB(1
 local oT=Instance.new("TextLabel");oT.Parent=oF;oT.BackgroundColor3=T.top;oT.BorderSizePixel=0;oT.Size=UDim2.new(1,0,0,35);oT.Font=Enum.Font.GothamBold;oT.Text="";oT.TextColor3=Color3.fromRGB(255,255,255);oT.TextSize=14;oT.ZIndex=201
 local oC=Instance.new("Frame");oC.Parent=oF;oC.BackgroundTransparency=1;oC.Position=UDim2.new(0,10,0,40);oC.Size=UDim2.new(1,-20,1,-50);oC.ZIndex=200
 local oCL=Instance.new("TextButton");oCL.Parent=oT;oCL.BackgroundColor3=Color3.fromRGB(180,50,50);oCL.BorderSizePixel=0;oCL.Position=UDim2.new(1,-30,0,6);oCL.Size=UDim2.new(0,24,0,24);oCL.Font=Enum.Font.GothamBold;oCL.Text="X";oCL.TextColor3=Color3.fromRGB(255,255,255);oCL.TextSize=12;oCL.ZIndex=202;addC(oCL,6)
-oCL.MouseButton1Click:Connect(function() oF.Visible=false end)
-local oS=Instance.new("ScrollingFrame");oS.Parent=oC;oS.BackgroundTransparency=1;oS.Size=UDim2.new(1,0,1,0);oS.ScrollBarThickness=4;oS.BorderSizePixel=0;oS.ZIndex=200;oS.CanvasSize=UDim2.new(0,0,0,0)
+oCL.MouseButton1Click:Connect(function() tween(oF,TweenInfo.new(0.2,Enum.EasingStyle.Back,Enum.EasingDirection.In),{Size=UDim2.new(0,400,0,0),BackgroundTransparency=1}) delay(0.22,function() oF.Visible=false oF.Size=UDim2.new(0,400,0,440) oF.BackgroundTransparency=0 end) end)
+local oS=Instance.new("ScrollingFrame");oS.Parent=oC;oS.BackgroundTransparency=1;oS.Size=UDim2.new(1,0,1,0);oS.ScrollBarThickness=4;oS.BorderSizePixel=0;oS.ZIndex=200;oS.AutomaticCanvasSize=Enum.AutomaticSize.Y
 local oLy=Instance.new("UIListLayout");oLy.Parent=oS;oLy.Padding=UDim.new(0,4)
 
 local function clrOv() for _,c in pairs(oS:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end end
-local function shOv(t) oT.Text=t;clrOv();oF.Visible=true end
+local function shOv(t) oT.Text=t;clrOv();oF.Size=UDim2.new(0,400,0,0);oF.BackgroundTransparency=0.3;oF.Visible=true;tween(oF,TweenInfo.new(0.35,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,400,0,440),BackgroundTransparency=0}) end
 
 -- ====================== FEATURE IMPLEMENTATIONS ======================
 
@@ -281,16 +356,17 @@ dbg("Feature: Fly")
 local flyConn=nil
 local function toggleFly()
     S.fly=not S.fly; updBtn(bFly,S.fly)
+    notify(S.fly and "Fly: ON [F]" or "Fly: OFF", S.fly and T.acc or Color3.fromRGB(150,150,150))
     if S.fly then
         S.flying=true
         flyConn=RunService.Heartbeat:Connect(function(d)
             if not S.fly or not rootPart or not rootPart.Parent then if flyConn then flyConn:Disconnect() end return end
             local cam=workspace.CurrentCamera; local dir=Vector3.new(0,0,0)
-            if UIS:IsKeyDown(Enum.KeyCode.W) then dir=dir+cam.CFrame.LookVector end
-            if UIS:IsKeyDown(Enum.KeyCode.S) then dir=dir-cam.CFrame.LookVector end
-            if UIS:IsKeyDown(Enum.KeyCode.A) then dir=dir-cam.CFrame.RightVector end
-            if UIS:IsKeyDown(Enum.KeyCode.D) then dir=dir+cam.CFrame.RightVector end
-            if UIS:IsKeyDown(Enum.KeyCode.Space) then dir=dir+Vector3.new(0,1,0) end
+            if isKeyDown(Enum.KeyCode.W) then dir=dir+cam.CFrame.LookVector end
+            if isKeyDown(Enum.KeyCode.S) then dir=dir-cam.CFrame.LookVector end
+            if isKeyDown(Enum.KeyCode.A) then dir=dir-cam.CFrame.RightVector end
+            if isKeyDown(Enum.KeyCode.D) then dir=dir+cam.CFrame.RightVector end
+            if isKeyDown(Enum.KeyCode.Space) then dir=dir+Vector3.new(0,1,0) end
             if dir.Magnitude>0 then dir=dir.Unit end
             local sp=C.flySpeed
             if C.flyType=="bhop" then sp=C.flySpeed*1.5 elseif C.flyType=="bounce" then sp=C.flySpeed*0.8 elseif C.flyType=="glide" then sp=C.flySpeed*0.6 end
@@ -307,6 +383,7 @@ UIS.JumpRequest:Connect(function() if S.infJump and hum then hum:ChangeState(Enu
 -- GOD MODE
 local function toggleGod()
     S.god=not S.god; updBtn(bGod,S.god)
+    notify(S.god and "God Mode: ON [G]" or "God Mode: OFF", S.god and T.acc or Color3.fromRGB(150,150,150))
     if S.god then CON.god=RunService.Heartbeat:Connect(function() if S.god and hum and hum.Health<hum.MaxHealth then hum.Health=hum.MaxHealth end end)
     else if CON.god then CON.god:Disconnect() end end
 end
@@ -314,6 +391,7 @@ end
 -- NOCLIP
 local function toggleNoclip()
     S.noclip=not S.noclip; updBtn(bNocl,S.noclip)
+    notify(S.noclip and "Noclip: ON [N]" or "Noclip: OFF", S.noclip and T.acc or Color3.fromRGB(150,150,150))
     if S.noclip then CON.noclip=RunService.Stepped:Connect(function() if S.noclip and char then for _,p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide=false end end end end)
     else if CON.noclip then CON.noclip:Disconnect() end end
 end
@@ -321,6 +399,7 @@ end
 -- SPEED
 local function toggleSpeed()
     S.speed=not S.speed; updBtn(bSpd,S.speed)
+    notify(S.speed and "Speed: ON [V]" or "Speed: OFF", S.speed and T.acc or Color3.fromRGB(150,150,150))
     if S.speed then CON.speed=RunService.Heartbeat:Connect(function() if S.speed and hum then hum.WalkSpeed=C.speed end end)
     else if CON.speed then CON.speed:Disconnect() end if hum then hum.WalkSpeed=C.defSpeed end end
 end
@@ -329,6 +408,7 @@ end
 local fcRot=CFrame.new(); local fcPos=Vector3.new()
 local function toggleFreecam()
     S.freecam=not S.freecam; updBtn(bFree,S.freecam)
+    notify(S.freecam and "Freecam: ON [C]" or "Freecam: OFF", S.freecam and T.acc or Color3.fromRGB(150,150,150))
     local cam=workspace.CurrentCamera
     if S.freecam then
         if rootPart then rootPart.Anchored=true end
@@ -340,13 +420,13 @@ local function toggleFreecam()
             local md=UIS:GetMouseDelta(); local sn=0.003
             fcRot=fcRot*CFrame.Angles(0,-md.X*sn,0)*CFrame.Angles(-md.Y*sn,0,0)
             local mv=Vector3.new(0,0,0); local sp=50
-            if UIS:IsKeyDown(Enum.KeyCode.W) then mv=mv+fcRot.LookVector*sp*d end
-            if UIS:IsKeyDown(Enum.KeyCode.S) then mv=mv-fcRot.LookVector*sp*d end
-            if UIS:IsKeyDown(Enum.KeyCode.A) then mv=mv-fcRot.RightVector*sp*d end
-            if UIS:IsKeyDown(Enum.KeyCode.D) then mv=mv+fcRot.RightVector*sp*d end
-            if UIS:IsKeyDown(Enum.KeyCode.R) or UIS:IsKeyDown(Enum.KeyCode.Space) then mv=mv+Vector3.new(0,1,0)*sp*d end
-            if UIS:IsKeyDown(Enum.KeyCode.Q) then mv=mv-Vector3.new(0,1,0)*sp*d end
-            if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then mv=mv*3 end
+            if isKeyDown(Enum.KeyCode.W) then mv=mv+fcRot.LookVector*sp*d end
+            if isKeyDown(Enum.KeyCode.S) then mv=mv-fcRot.LookVector*sp*d end
+            if isKeyDown(Enum.KeyCode.A) then mv=mv-fcRot.RightVector*sp*d end
+            if isKeyDown(Enum.KeyCode.D) then mv=mv+fcRot.RightVector*sp*d end
+            if isKeyDown(Enum.KeyCode.R) or isKeyDown(Enum.KeyCode.Space) then mv=mv+Vector3.new(0,1,0)*sp*d end
+            if isKeyDown(Enum.KeyCode.Q) then mv=mv-Vector3.new(0,1,0)*sp*d end
+            if isKeyDown(Enum.KeyCode.LeftShift) then mv=mv*3 end
             fcPos=fcPos+mv; cam.CFrame=CFrame.new(fcPos)*fcRot
         end)
     else
@@ -521,12 +601,64 @@ end
 -- FLING
 local function toggleFling()
     S.fling=not S.fling; updBtn(bFL,S.fling)
-    if S.fling then CON.fl=RunService.Heartbeat:Connect(function() if not S.fling or not rootPart or not rootPart.Parent then if CON.fl then CON.fl:Disconnect() end return end rootPart.Velocity=Vector3.new(9999,9999,0);rootPart.RotVelocity=Vector3.new(0,9999,0) end)
+    if S.fling then CON.fl=RunService.Heartbeat:Connect(function() if not S.fling or not rootPart or not rootPart.Parent then if CON.fl then CON.fl:Disconnect() end return end rootPart.Velocity=Vector3.new(500,250,0);rootPart.RotVelocity=Vector3.new(0,500,0) end)
     else if CON.fl then CON.fl:Disconnect() CON.fl=nil end if rootPart then rootPart.Velocity=Vector3.new(0,0,0);rootPart.RotVelocity=Vector3.new(0,0,0) end end
 end
 
 -- FORCE SIT
 local function toggleSit() S.sit=not S.sit; updBtn(bSIT,S.sit) if hum then hum.Sit=S.sit end end
+
+-- JUMP POWER
+local function toggleJumpPower()
+    S.jpEnabled=not S.jpEnabled; updBtn(bJp,S.jpEnabled)
+    if S.jpEnabled then if hum then hum.UseJumpPower=true; hum.JumpPower=C.jumpPow end; notify("Jump Power: ON",T.acc)
+    else if hum then hum.JumpPower=50 end; notify("Jump Power: OFF",Color3.fromRGB(150,150,150)) end
+end
+
+-- TP TO MOUSE
+local function toggleTpMouse()
+    S.tpMouse=not S.tpMouse; updBtn(bTp,S.tpMouse)
+    if S.tpMouse then notify("TP to Mouse: ON [P]",T.acc) else notify("TP to Mouse: OFF",Color3.fromRGB(150,150,150)) end
+end
+
+-- BOX ESP (2D bounding boxes using Drawing API)
+local boxEspLines = {}
+local function toggleBoxEsp()
+    S.boxEsp=not S.boxEsp; updBtn(bBE,S.boxEsp)
+    if S.boxEsp then notify("Box ESP: ON [Y]",T.acc) else notify("Box ESP: OFF",Color3.fromRGB(150,150,150)) end
+    if not S.boxEsp then for _,l in pairs(boxEspLines) do for _,ln in pairs(l) do pcall(function() ln:Remove() end) end end; boxEspLines={} end
+end
+CON.boxEsp=RunService.RenderStepped:Connect(function()
+    if not S.boxEsp then return end
+    pcall(function()
+        local cam=workspace.CurrentCamera
+        for _,p in pairs(Players:GetPlayers()) do
+            if p~=player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") then
+                local hr=p.Character.HumanoidRootPart
+                local hm=p.Character.Humanoid
+                if hm.Health>0 then
+                    local pos,ons=cam:WorldToScreenPoint(hr.Position)
+                    if ons then
+                        local h=28+math.floor(12*(1-(pos.Z/100)))
+                        local w=h*0.6
+                        local x,y=pos.X,pos.Y-h/2
+                        local clr=Color3.fromRGB(C.espR,C.espG,C.espB)
+                        if not boxEspLines[p] then boxEspLines[p]={} end
+                        for i=1,4 do
+                            if not boxEspLines[p][i] then boxEspLines[p][i]=Drawing.new("Line");boxEspLines[p][i].Thickness=1.5;boxEspLines[p][i].Color=clr;boxEspLines[p][i].Transparency=0.8 end
+                        end
+                        boxEspLines[p][1].From=Vector2.new(x-w,y);boxEspLines[p][1].To=Vector2.new(x+w,y);boxEspLines[p][1].Visible=true
+                        boxEspLines[p][2].From=Vector2.new(x+w,y);boxEspLines[p][2].To=Vector2.new(x+w,y+h);boxEspLines[p][2].Visible=true
+                        boxEspLines[p][3].From=Vector2.new(x+w,y+h);boxEspLines[p][3].To=Vector2.new(x-w,y+h);boxEspLines[p][3].Visible=true
+                        boxEspLines[p][4].From=Vector2.new(x-w,y+h);boxEspLines[p][4].To=Vector2.new(x-w,y);boxEspLines[p][4].Visible=true
+                    else for _,ln in pairs(boxEspLines[p] or {}) do ln.Visible=false end end
+                else for _,ln in pairs(boxEspLines[p] or {}) do ln.Visible=false end end
+            else
+                if boxEspLines[p] then for _,ln in pairs(boxEspLines[p]) do pcall(function() ln:Remove() end) end; boxEspLines[p]=nil end
+            end
+        end
+    end)
+end)
 
 -- ESP SETTINGS
 local function toggleEspName() C.espName=not C.espName; updBtn(bESN,C.espName); updAllESP() end
@@ -593,11 +725,13 @@ setupBtn(bKA,toggleKillAura,"killAura");setupBtn(bAim,toggleAimbot,"aimbot");set
 setupBtn(bFB,toggleFullbright,"fullbright");setupBtn(bSky,toggleSkybox,"skybox")
 setupBtn(bTrc,toggleTracers,"tracer");setupBtn(bHpB,toggleHealthBars,"healthBar")
 setupBtn(bESP,toggleESP,"esp");setupBtn(bIE,toggleItemEsp,"itemEsp");setupBtn(bFPS,toggleFpsBoost,"fpsBoost")
+setupBtn(bJp,toggleJumpPower,"jumpPow");setupBtn(bTp,toggleTpMouse,"tpMouse");setupBtn(bBE,toggleBoxEsp,"boxEsp")
 bESN.MouseButton1Click:Connect(toggleEspName)
 bESD.MouseButton1Click:Connect(toggleEspDist)
 bAEC.MouseButton1Click:Connect(applyEspCol)
 bFL.MouseButton1Click:Connect(toggleFling)
 bSIT.MouseButton1Click:Connect(toggleSit)
+bHBV.MouseButton1Click:Connect(toggleHBVis)
 bSP2.MouseButton1Click:Connect(joinLowServer)
 
 b99.MouseButton1Click:Connect(function() pcall(function() loadstring(game:HttpGet("https://files.vapevoidware.xyz/VapeVoidware/VW-Add/main/loader.lua",true))() end);b99.Text="99 Nights загружен!";wait(2);b99.Text="99 Nights in the Forest" end)
@@ -613,7 +747,7 @@ UIS.InputBegan:Connect(function(i,gp)
             waitingBind=nil;waitBindBtn=nil;return
         end
         if i.KeyCode~=Enum.KeyCode.Unknown then
-            local map={fly="fly",noclip="noclip",god="god",infJump="infJump",speed="speed",fullbright="fullbright",freecam="freecam",killAura="killAura",esp="esp",hitbox="hitbox",aimbot="aimbot"}
+            local map={fly="fly",noclip="noclip",god="god",infJump="infJump",speed="speed",fullbright="fullbright",freecam="freecam",killAura="killAura",esp="esp",hitbox="hitbox",aimbot="aimbot",boxEsp="boxEsp",tpMouse="tpMouse"}
             local bn=map[waitingBind] if bn then B[bn]=i.KeyCode end
             if waitBindBtn then local pf=bindPrefix[waitingBind] or "" local ok=waitBindBtn.Text:find("ON") and "ON" or "OFF" waitBindBtn.Text=pf..": "..ok.." ["..i.KeyCode.Name.."]" end
             waitingBind=nil;waitBindBtn=nil
@@ -624,7 +758,18 @@ UIS.InputBegan:Connect(function(i,gp)
         if kc==B.fly then toggleFly() elseif kc==B.noclip then toggleNoclip() elseif kc==B.god then toggleGod()
         elseif kc==B.infJump then toggleInfJump() elseif kc==B.speed then toggleSpeed() elseif kc==B.fullbright then toggleFullbright()
         elseif kc==B.freecam then toggleFreecam() elseif kc==B.killAura then toggleKillAura() elseif kc==B.esp then toggleESP()
-        elseif kc==B.hitbox then toggleHitbox() elseif kc==B.aimbot then toggleAimbot() end
+        elseif kc==B.hitbox then toggleHitbox() elseif kc==B.aimbot then toggleAimbot()
+        elseif kc==B.boxEsp then toggleBoxEsp() elseif kc==B.tpMouse then toggleTpMouse() end
+        -- TP to Mouse: right-click teleports
+        if S.tpMouse and i.UserInputType==Enum.UserInputType.MouseButton2 then
+            pcall(function()
+                local ms=UIS:GetMouseLocation()
+                local cam=workspace.CurrentCamera
+                local wp=cam:ViewportPointToRay(ms.X,ms.Y)
+                local ray=workspace:Raycast(wp.Origin,wp.Direction*500)
+                if ray and ray.Position then rootPart.CFrame=CFrame.new(ray.Position+Vector3.new(0,3,0)) notify("TP: "..math.floor((ray.Position-rootPart.Position).Magnitude).."m") end
+            end)
+        end
     end
 end)
 
@@ -639,8 +784,19 @@ player.CharacterAdded:Connect(function(nc)
 end)
 
 -- ====================== HIDE / SHOW ======================
-HB.MouseButton1Click:Connect(function() MF.Visible=false;SB2.Visible=true end)
-SB2.MouseButton1Click:Connect(function() MF.Visible=true;SB2.Visible=false end)
+local FW=Instance.new("TextButton");FW.Parent=SG;FW.BackgroundColor3=T.panel;FW.BorderSizePixel=0;FW.Position=UDim2.new(0,10,0,10);FW.Size=UDim2.new(0,50,0,50);FW.Font=Enum.Font.GothamBold;FW.Text="V98";FW.TextColor3=T.acc;FW.TextSize=14;FW.Visible=false;addC(FW,25);addS(FW,T.acc,1.5)
+local FL=Instance.new("TextLabel");FL.Parent=FW;FL.BackgroundTransparency=1;FL.Position=UDim2.new(0,0,0.6,0);FL.Size=UDim2.new(1,0,0,16);FL.Font=Enum.Font.Gotham;FL.Text="0";FL.TextColor3=Color3.fromRGB(255,255,255);FL.TextSize=10
+FW.MouseButton1Click:Connect(function()
+    MF.Position=UDim2.new(0.5,-235,0.5,50); MF.Visible=true
+    tween(MF,TweenInfo.new(0.3,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Position=UDim2.new(0.5,-235,0.5,-265)})
+    FW.Visible=false
+end)
+
+HB.MouseButton1Click:Connect(function()
+    tween(MF,TweenInfo.new(0.25,Enum.EasingStyle.Back,Enum.EasingDirection.In),{Size=UDim2.new(0,470,0,0),Position=UDim2.new(0.5,-235,0.5,0)})
+    wait(0.25); MF.Visible=false; MF.Size=UDim2.new(0,470,0,530); MF.Position=UDim2.new(0.5,-235,0.5,-265)
+    FW.Visible=true; FL.Text=tostring(countActive())
+end)
 
 -- ====================== UNLOAD ======================
 bUnload.MouseButton1Click:Connect(function()
@@ -650,14 +806,34 @@ bUnload.MouseButton1Click:Connect(function()
     if S.aimbot then toggleAimbot() end;if S.skybox then toggleSkybox() end;if S.invisible then toggleInvisible() end
     if S.antiAfk then toggleAntiAfk() end;if S.itemEsp then toggleItemEsp() end;if S.tracer then toggleTracers() end
     if S.healthBar then toggleHealthBars() end;if S.fpsBoost then toggleFpsBoost() end;if S.fling then toggleFling() end
+    if S.boxEsp then toggleBoxEsp() end;if S.jpEnabled then toggleJumpPower() end;if S.tpMouse then toggleTpMouse() end
     musicSound:Stop();SG:Destroy()
 end)
 
--- ANTI-DETECTION
-pcall(function() local mt=getrawmetatable(game) local oc=mt.__namecall setreadonly(mt,false) mt.__namecall=newcclosure(function(self,...) local m=getnamecallmethod() if m=="Kick" or m=="kick" then return end return oc(self,...) end) setreadonly(mt,true) end)
+-- ANTI-DETECTION (safe wrapper)
+pcall(function()
+    if not getrawmetatable or not setreadonly or not newcclosure or not getnamecallmethod then return end
+    local ok,mt=pcall(getrawmetatable,game) if not ok or not mt then return end
+    local oc=mt.__namecall
+    setreadonly(mt,false)
+    mt.__namecall=newcclosure(function(self,...)
+        local ok2,m=pcall(getnamecallmethod) if not ok2 then return oc(self,...) end
+        if m=="Kick" or m=="kick" then return end
+        return oc(self,...)
+    end)
+    setreadonly(mt,true)
+end)
 
 dbg("Anti-detection: OK")
-print("[Cheat V2] ============================================")
-print("[Cheat V2] Cheat by V98 v2.1 ULTIMATE загружено!")
-print("[Cheat V2] Время загрузки: "..string.format("%.2f",tick()-loadStart).."s")
-print("[Cheat V2] ============================================")
+notify("V98 v3.0 загружен!", T.acc)
+
+-- ENTRANCE ANIMATION
+MF.Position=UDim2.new(0.5,-235,0.5,50)
+MF.GroupTransparency=0.1
+tween(MF,TweenInfo.new(0.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Position=UDim2.new(0.5,-235,0.5,-265)})
+spawn(function() while SG and SG.Parent do pcall(function() tween(TL,TweenInfo.new(2,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{TextColor3=T.acc}) end) wait(2) pcall(function() tween(TL,TweenInfo.new(2,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{TextColor3=Color3.fromRGB(255,255,255)}) end) wait(2) end end)
+
+print("[Cheat V3] ============================================")
+print("[Cheat V3] Cheat by V98 v3.0 ULTIMATE загружено!")
+print("[Cheat V3] Время загрузки: "..string.format("%.2f",tick()-loadStart).."s")
+print("[Cheat V3] ============================================")
